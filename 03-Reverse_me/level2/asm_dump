@@ -1,0 +1,159 @@
+Dump of assembler code for function main:
+   0x565562d0 <+0>:     push   ebp
+   0x565562d1 <+1>:     mov    ebp,esp
+   0x565562d3 <+3>:     push   ebx
+   0x565562d4 <+4>:     sub    esp,0x54
+   0x565562d7 <+7>:     call   0x565562dc <main+12>
+   0x565562dc <+12>:    pop    ebx
+   0x565562dd <+13>:    add    ebx,0x5d24
+   0x565562e3 <+19>:    mov    DWORD PTR [ebp-0x40],ebx
+   0x565562e6 <+22>:    mov    DWORD PTR [ebp-0x8],0x0
+   0x565562ed <+29>:    lea    eax,[ebx-0x42e5]
+   0x565562f3 <+35>:    mov    DWORD PTR [esp],eax
+   0x565562f6 <+38>:    call   0x56556060 <printf@plt>
+   0x565562fb <+43>:    mov    ebx,DWORD PTR [ebp-0x40]
+   0x565562fe <+46>:    lea    eax,[ebp-0x35]
+   0x56556301 <+49>:    lea    ecx,[ebx-0x42d2]
+   0x56556307 <+55>:    mov    DWORD PTR [esp],ecx
+   0x5655630a <+58>:    mov    DWORD PTR [esp+0x4],eax
+   0x5655630e <+62>:    call   0x565560c0 <__isoc99_scanf@plt>
+   0x56556313 <+67>:    mov    DWORD PTR [ebp-0xc],eax
+   0x56556316 <+70>:    mov    eax,0x1
+   0x5655631b <+75>:    cmp    eax,DWORD PTR [ebp-0xc]
+   0x5655631e <+78>:    je     0x5655632c <main+92>
+   0x56556324 <+84>:    mov    ebx,DWORD PTR [ebp-0x40]
+   0x56556327 <+87>:    call   0x56556220 <no>
+   0x5655632c <+92>:    movsx  ecx,BYTE PTR [ebp-0x34]
+   0x56556330 <+96>:    mov    eax,0x30
+   0x56556335 <+101>:   cmp    eax,ecx
+   0x56556337 <+103>:   je     0x56556345 <main+117>
+   0x5655633d <+109>:   mov    ebx,DWORD PTR [ebp-0x40]
+   0x56556340 <+112>:   call   0x56556220 <no>
+   0x56556345 <+117>:   movsx  ecx,BYTE PTR [ebp-0x35]
+   0x56556349 <+121>:   mov    eax,0x30
+   0x5655634e <+126>:   cmp    eax,ecx
+   0x56556350 <+128>:   je     0x5655635e <main+142>
+   0x56556356 <+134>:   mov    ebx,DWORD PTR [ebp-0x40]
+   0x56556359 <+137>:   call   0x56556220 <no>
+   0x5655635e <+142>:   mov    ebx,DWORD PTR [ebp-0x40]
+   0x56556361 <+145>:   mov    eax,DWORD PTR [ebx-0xc]
+   0x56556367 <+151>:   mov    eax,DWORD PTR [eax]
+   0x56556369 <+153>:   mov    ecx,DWORD PTR [ebx-0xc]
+   0x5655636f <+159>:   mov    DWORD PTR [esp],eax
+   0x56556372 <+162>:   call   0x56556070 <fflush@plt>
+   0x56556377 <+167>:   mov    ebx,DWORD PTR [ebp-0x40]
+   0x5655637a <+170>:   lea    eax,[ebp-0x1d]
+   0x5655637d <+173>:   xor    ecx,ecx
+   0x5655637f <+175>:   mov    DWORD PTR [esp],eax
+   0x56556382 <+178>:   mov    DWORD PTR [esp+0x4],0x0
+   0x5655638a <+186>:   mov    DWORD PTR [esp+0x8],0x9
+   0x56556392 <+194>:   call   0x565560b0 <memset@plt>
+   0x56556397 <+199>:   mov    BYTE PTR [ebp-0x1d],0x64
+   0x5655639b <+203>:   mov    BYTE PTR [ebp-0x36],0x0
+   0x5655639f <+207>:   mov    DWORD PTR [ebp-0x14],0x2
+   0x565563a6 <+214>:   mov    DWORD PTR [ebp-0x10],0x1
+   0x565563ad <+221>:   mov    ebx,DWORD PTR [ebp-0x40]
+   0x565563b0 <+224>:   lea    ecx,[ebp-0x1d]
+   0x565563b3 <+227>:   mov    eax,esp
+   0x565563b5 <+229>:   mov    DWORD PTR [eax],ecx
+   0x565563b7 <+231>:   call   0x565560a0 <strlen@plt>
+   0x565563bc <+236>:   mov    ecx,eax
+   0x565563be <+238>:   xor    eax,eax
+   0x565563c0 <+240>:   cmp    ecx,0x8
+   0x565563c3 <+243>:   mov    BYTE PTR [ebp-0x41],al
+   0x565563c6 <+246>:   jae    0x565563ee <main+286>
+   0x565563cc <+252>:   mov    ebx,DWORD PTR [ebp-0x40]
+   0x565563cf <+255>:   mov    eax,DWORD PTR [ebp-0x14]
+   0x565563d2 <+258>:   mov    DWORD PTR [ebp-0x48],eax
+   0x565563d5 <+261>:   lea    ecx,[ebp-0x35]
+   0x565563d8 <+264>:   mov    eax,esp
+   0x565563da <+266>:   mov    DWORD PTR [eax],ecx
+   0x565563dc <+268>:   call   0x565560a0 <strlen@plt>
+   0x565563e1 <+273>:   mov    ecx,eax
+   0x565563e3 <+275>:   mov    eax,DWORD PTR [ebp-0x48]
+   0x565563e6 <+278>:   cmp    eax,ecx
+   0x565563e8 <+280>:   setb   al
+   0x565563eb <+283>:   mov    BYTE PTR [ebp-0x41],al
+   0x565563ee <+286>:   mov    al,BYTE PTR [ebp-0x41]
+   0x565563f1 <+289>:   test   al,0x1
+   0x565563f3 <+291>:   jne    0x565563fe <main+302>
+   0x565563f9 <+297>:   jmp    0x5655644a <main+378>
+   0x565563fe <+302>:   mov    ebx,DWORD PTR [ebp-0x40]
+   0x56556401 <+305>:   mov    eax,DWORD PTR [ebp-0x14]
+   0x56556404 <+308>:   mov    al,BYTE PTR [ebp+eax*1-0x35]
+   0x56556408 <+312>:   mov    BYTE PTR [ebp-0x39],al
+   0x5655640b <+315>:   mov    eax,DWORD PTR [ebp-0x14]
+   0x5655640e <+318>:   mov    al,BYTE PTR [ebp+eax*1-0x34]
+   0x56556412 <+322>:   mov    BYTE PTR [ebp-0x38],al
+   0x56556415 <+325>:   mov    eax,DWORD PTR [ebp-0x14]
+   0x56556418 <+328>:   mov    al,BYTE PTR [ebp+eax*1-0x33]
+   0x5655641c <+332>:   mov    BYTE PTR [ebp-0x37],al
+   0x5655641f <+335>:   lea    eax,[ebp-0x39]
+   0x56556422 <+338>:   mov    DWORD PTR [esp],eax
+   0x56556425 <+341>:   call   0x565560d0 <atoi@plt>
+   0x5655642a <+346>:   mov    cl,al
+   0x5655642c <+348>:   mov    eax,DWORD PTR [ebp-0x10]
+   0x5655642f <+351>:   mov    BYTE PTR [ebp+eax*1-0x1d],cl
+   0x56556433 <+355>:   mov    eax,DWORD PTR [ebp-0x14]
+   0x56556436 <+358>:   add    eax,0x3
+   0x56556439 <+361>:   mov    DWORD PTR [ebp-0x14],eax
+   0x5655643c <+364>:   mov    eax,DWORD PTR [ebp-0x10]
+   0x5655643f <+367>:   add    eax,0x1
+   0x56556442 <+370>:   mov    DWORD PTR [ebp-0x10],eax
+   0x56556445 <+373>:   jmp    0x565563ad <main+221>
+   0x5655644a <+378>:   mov    ebx,DWORD PTR [ebp-0x40]
+   0x5655644d <+381>:   mov    eax,DWORD PTR [ebp-0x10]
+   0x56556450 <+384>:   mov    BYTE PTR [ebp+eax*1-0x1d],0x0
+   0x56556455 <+389>:   lea    ecx,[ebp-0x1d]
+   0x56556458 <+392>:   lea    edx,[ebx-0x42cd]
+   0x5655645e <+398>:   mov    eax,esp
+   0x56556460 <+400>:   mov    DWORD PTR [eax+0x4],edx
+   0x56556463 <+403>:   mov    DWORD PTR [eax],ecx
+   0x56556465 <+405>:   call   0x56556040 <strcmp@plt>
+   0x5655646a <+410>:   cmp    eax,0x0
+   0x5655646d <+413>:   jne    0x56556480 <main+432>
+   0x56556473 <+419>:   mov    ebx,DWORD PTR [ebp-0x40]
+   0x56556476 <+422>:   call   0x565562a0 <ok>
+   0x5655647b <+427>:   jmp    0x56556488 <main+440>
+   0x56556480 <+432>:   mov    ebx,DWORD PTR [ebp-0x40]
+   0x56556483 <+435>:   call   0x56556220 <no>
+   0x56556488 <+440>:   xor    eax,eax
+   0x5655648a <+442>:   add    esp,0x54
+   0x5655648d <+445>:   pop    ebx
+   0x5655648e <+446>:   pop    ebp
+   0x5655648f <+447>:   ret    
+End of assembler dump.
+
+Dump of assembler code for function no:
+   0x56556220 <+0>:     push   ebp
+   0x56556221 <+1>:     mov    ebp,esp
+   0x56556223 <+3>:     push   ebx
+   0x56556224 <+4>:     sub    esp,0x14
+   0x56556227 <+7>:     call   0x5655622c <no+12>
+   0x5655622c <+12>:    pop    ebx
+   0x5655622d <+13>:    add    ebx,0x5dd4
+   0x56556233 <+19>:    mov    DWORD PTR [ebp-0x8],ebx
+   0x56556236 <+22>:    lea    eax,[ebx-0x4ff8]
+   0x5655623c <+28>:    mov    DWORD PTR [esp],eax
+   0x5655623f <+31>:    call   0x56556080 <puts@plt>
+   0x56556244 <+36>:    mov    ebx,DWORD PTR [ebp-0x8]
+   0x56556247 <+39>:    mov    DWORD PTR [esp],0x1
+   0x5655624e <+46>:    call   0x56556090 <exit@plt>
+End of assembler dump.
+
+Dump of assembler code for function ok:
+   0x565562a0 <+0>:     push   ebp
+   0x565562a1 <+1>:     mov    ebp,esp
+   0x565562a3 <+3>:     push   ebx
+   0x565562a4 <+4>:     push   eax
+   0x565562a5 <+5>:     call   0x565562aa <ok+10>
+   0x565562aa <+10>:    pop    ebx
+   0x565562ab <+11>:    add    ebx,0x5d56
+   0x565562b1 <+17>:    lea    eax,[ebx-0x42ef]
+   0x565562b7 <+23>:    mov    DWORD PTR [esp],eax
+   0x565562ba <+26>:    call   0x56556080 <puts@plt>
+   0x565562bf <+31>:    add    esp,0x4
+   0x565562c2 <+34>:    pop    ebx
+   0x565562c3 <+35>:    pop    ebp
+   0x565562c4 <+36>:    ret    
+End of assembler dump.

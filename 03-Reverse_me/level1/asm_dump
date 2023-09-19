@@ -1,0 +1,51 @@
+Dump of assembler code for function main:
+   0x000011c0 <+0>:     push   ebp
+   0x000011c1 <+1>:     mov    ebp,esp
+   0x000011c3 <+3>:     push   ebx
+   0x000011c4 <+4>:     sub    esp,0x84
+   0x000011ca <+10>:    call   0x11cf <main+15>
+   0x000011cf <+15>:    pop    ebx
+   0x000011d0 <+16>:    add    ebx,0x2e31
+   0x000011d6 <+22>:    mov    DWORD PTR [ebp-0x80],ebx
+   0x000011d9 <+25>:    mov    DWORD PTR [ebp-0x8],0x0
+   0x000011e0 <+32>:    mov    eax,DWORD PTR [ebx-0x1ff8]
+   0x000011e6 <+38>:    mov    DWORD PTR [ebp-0x7a],eax
+   0x000011e9 <+41>:    mov    eax,DWORD PTR [ebx-0x1ff4]
+   0x000011ef <+47>:    mov    DWORD PTR [ebp-0x76],eax
+   0x000011f2 <+50>:    mov    eax,DWORD PTR [ebx-0x1ff0]
+   0x000011f8 <+56>:    mov    DWORD PTR [ebp-0x72],eax
+   0x000011fb <+59>:    mov    ax,WORD PTR [ebx-0x1fec]
+   0x00001202 <+66>:    mov    WORD PTR [ebp-0x6e],ax
+   0x00001206 <+70>:    lea    eax,[ebx-0x1fea]
+   0x0000120c <+76>:    mov    DWORD PTR [esp],eax
+   0x0000120f <+79>:    call   0x1060 <printf@plt>
+   0x00001214 <+84>:    mov    ebx,DWORD PTR [ebp-0x80]
+   0x00001217 <+87>:    lea    eax,[ebp-0x6c]
+   0x0000121a <+90>:    lea    ecx,[ebx-0x1fd7]
+   0x00001220 <+96>:    mov    DWORD PTR [esp],ecx
+   0x00001223 <+99>:    mov    DWORD PTR [esp+0x4],eax
+   0x00001227 <+103>:   call   0x1070 <__isoc99_scanf@plt>
+   0x0000122c <+108>:   mov    ebx,DWORD PTR [ebp-0x80]
+   0x0000122f <+111>:   lea    ecx,[ebp-0x6c]
+   0x00001232 <+114>:   lea    edx,[ebp-0x7a]
+   0x00001235 <+117>:   mov    eax,esp
+   0x00001237 <+119>:   mov    DWORD PTR [eax+0x4],edx
+   0x0000123a <+122>:   mov    DWORD PTR [eax],ecx
+   0x0000123c <+124>:   call   0x1040 <strcmp@plt>
+   0x00001241 <+129>:   cmp    eax,0x0
+   0x00001244 <+132>:   jne    0x1260 <main+160>
+   0x0000124a <+138>:   mov    ebx,DWORD PTR [ebp-0x80]
+   0x0000124d <+141>:   lea    eax,[ebx-0x1fd4]
+   0x00001253 <+147>:   mov    DWORD PTR [esp],eax
+   0x00001256 <+150>:   call   0x1060 <printf@plt>
+   0x0000125b <+155>:   jmp    0x1271 <main+177>
+   0x00001260 <+160>:   mov    ebx,DWORD PTR [ebp-0x80]
+   0x00001263 <+163>:   lea    eax,[ebx-0x1fc9]
+   0x00001269 <+169>:   mov    DWORD PTR [esp],eax
+   0x0000126c <+172>:   call   0x1060 <printf@plt>
+   0x00001271 <+177>:   xor    eax,eax
+   0x00001273 <+179>:   add    esp,0x84
+   0x00001279 <+185>:   pop    ebx
+   0x0000127a <+186>:   pop    ebp
+   0x0000127b <+187>:   ret    
+End of assembler dump.

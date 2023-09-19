@@ -44,7 +44,7 @@ class TkImgViewer:
         metadata_label.pack(anchor="w")
         size_label = Label(left_frame, text=f"Size: {self.img.size}", justify="left")
         size_label.pack(anchor="w")
-        if self.exif:
+        if self.exif and self.exif.len():
             for tag in self.exif:
                 if self.exif[tag]:
                     for x in self.exif[tag]:

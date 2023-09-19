@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 from HTMLscraper import HTMLscraper
 from TkTreeViewer import TkTreeViewer
 
+
 if __name__ == "__main__":
     parser = ArgumentParser(description="This script downloads all images from a web page")
     parser.add_argument("url", help="The URL of the web page you want to download images")
