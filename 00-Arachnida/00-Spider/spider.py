@@ -11,7 +11,16 @@ if __name__ == "__main__":
     parser.add_argument("-l", type=int, default=5, help="Maximum depth level of the recursive download")
     parser.add_argument("-p", default="./data/", help="Path where the downloaded files will be saved")
     parser.add_argument("-g", action="store_true", help="Show the graphic interface")
+    parser.add_argument("-G", action="store_true", help="Show the graphic interface, no download, <url> become local path to display")
     args = parser.parse_args()
+
+    if args.G:
+        try:
+            TkTreeViewer(args.url)
+            exit(0)
+        except Exception as e:
+            print("spider: [ERROR] TkDirTree()", e)
+            exit(1)
 
     if (not args.url.startswith("http://")) and (not args.url.startswith("https://")):
         print("spider: [ERROR] invalid url, expected: SCHEME://URL")

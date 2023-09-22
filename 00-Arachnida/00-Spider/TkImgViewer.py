@@ -1,11 +1,9 @@
 from os.path import basename
 from PIL.Image import open as PIL_open
 from PIL.ImageTk import PhotoImage
-from PIL.ExifTags import TAGS
-from piexif import load
 from tkinter import Tk, Toplevel, Frame, Canvas, Label, Widget
 from PIL.ImageSequence import Iterator as PIL_iterator
-
+import pyexiv2
 
 class TkImgViewer:
     def __init__(self, img_path: str, parent=None):
@@ -21,19 +19,34 @@ class TkImgViewer:
             self.__load_img()
             self.window.mainloop()
         except Exception as e:
-            print(f"TkImgViewer: [ERROR] loadScreen():", e)
+            print(f"TkImgViewer: [ERROR] loadScreen(): ", e)
 
     def loadImgData(self, img_path: str):
         try:
             self.img_path = img_path
-            self.img = PIL_open(self.img_path)
+            metadata = pyexiv2.Image(self.img_path)
             try:
-                self.exif = load(self.img_path)
+                self.exif = []
+                exif_data = metadata.read_exif()
+                for key, value in exif_data.items():
+                    self.exif.append((key, value))
+
+                self.iptc = []
+                iptc_data = metadata.read_iptc()
+                for key, value in iptc_data.items():
+                    self.iptc.append((key, value))
+
+                self.xmp = []
+                xmp_data = metadata.read_xmp()
+                for key, value in xmp_data.items():
+                    self.xmp.append((key, value))
+
+                metadata.close()
+                self.img = PIL_open(self.img_path)
             except Exception as e:
-                self.exif = None
-                print("TkImgViewer: loadImgData(): can't get EXIF data:", e)
+                print("TkImgViewer: loadImgData(): can't get metadata: ", e)
         except Exception as e:
-            print(f"TkImgViewer: [ERROR] loadImgData():", e)
+            print(f"TkImgViewer: [ERROR] loadImgData():" , e)
 
     def __load_infos(self):
         left_frame = Frame(self.window)
@@ -45,15 +58,17 @@ class TkImgViewer:
         size_label = Label(left_frame, text=f"Size: {self.img.size}", justify="left")
         size_label.pack(anchor="w")
         if self.exif:
-            for tag in self.exif:
-                if self.exif[tag]:
-                    for x in self.exif[tag]:
-                        value = self.exif[tag][x].decode("utf-8")
-                        exif_label = Label(left_frame, text=f"{TAGS[x]}: {value}", justify="left")
-                        exif_label.pack(anchor="w")
-        else:
-            no_exif_label = Label(left_frame, text="No EXIF data", justify="left")
-            no_exif_label.pack(anchor="w")
+            for x, y in self.exif:
+                data_label = Label(left_frame, text=f"{x}: {y}", justify="left")
+                data_label.pack(anchor="w")
+        if self.iptc:
+            for x, y in self.iptc:
+                data_label = Label(left_frame, text=f"{x}: {y}", justify="left")
+                data_label.pack(anchor="w")
+        if self.xmp:
+            for x, y in self.xmp:
+                data_label = Label(left_frame, text=f"{x}: {y}", justify="left")
+                data_label.pack(anchor="w")
 
     def __load_img(self):
         img_width, img_height = self.img.size
