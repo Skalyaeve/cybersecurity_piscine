@@ -10,7 +10,9 @@ int main(int ac, char **av)
                 std::vector<std::string> workin_dirs;
                 for (int i = 1; i < ac; ++i)
                         workin_dirs.push_back(std::string(av[i]));
-                IronDome worker(&workin_dirs, NULL, NULL, NULL);
+                IronDome worker;
+                if (workin_dirs.size())
+                        worker.set_workin_dirs(workin_dirs);
                 if (worker.launch())
                         std::cout << "[ ERROR ] fork() failed." << std::endl;
                 else
