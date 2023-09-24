@@ -27,10 +27,10 @@ class Node:
                 self.html = BeautifulSoup(response.text, "html.parser")
                 return True
             except Exception as e:
-                print("HTMLscraper: [ERROR] BeautifulSoup(" + response.text + ", 'html.parser'):", e)
+                print("Spider: [ERROR] BeautifulSoup(" + response.text + ", 'html.parser'):", e)
                 return False
         except Exception as e:
-            print("HTMLscraper: [ERROR] get(" + self.url + "):", e)
+            print("Spider: [ERROR] get(" + self.url + "):", e)
             return False
 
     def create_childs(self):
@@ -69,9 +69,9 @@ class Node:
                 new_node = Node(self.base_url, url, self)
                 childs.append(new_node)
             self.childs = childs
-            print("HTMLscraper: child links of", self.url + cGreen + f" created" + cStop + f" ({len(childs)})\n")
+            print("Spider: child links of", self.url + cGreen + f" created" + cStop + f" ({len(childs)})\n")
         except Exception as e:
-            print("HTMLscraper: [ERROR] create_childs():", e)
+            print("Spider: [ERROR] create_childs():", e)
 
     def __link_already_exist(self, url: str, node):
         if not node:
@@ -85,7 +85,7 @@ class Node:
         return False
 
 
-class HTMLscraper:
+class Spider:
     def __init__(self, url: str, img_dir: str = "./", verbose: bool = True):
         try:
             self.img_ext = (".jpeg", ".jpg", ".png", ".gif", ".bmp")
@@ -94,7 +94,7 @@ class HTMLscraper:
             self.root_node = Node(self.__removeUri(url), url)
             self.node = self.root_node
         except Exception as e:
-            print("HTMLscraper: [ERROR] __init__:", e)
+            print("Spider: [ERROR] __init__:", e)
             self.root_node = None
             self.node = None
 
@@ -125,14 +125,14 @@ class HTMLscraper:
             node = self.node
         if not node.html:
             if not node.create_html():
-                print("HTMLscraper: [ERROR] can't create HTML for", node.url)
+                print("Spider: [ERROR] can't create HTML for", node.url)
                 return
         if self.verbose:
-            print("HTMLscraper: Downloading images from " + node.url + "...")
+            print("Spider: Downloading images from " + node.url + "...")
         try:
             makedirs(self.img_dir + node.url.split("://", 2)[1], exist_ok=True)
         except Exception as e:
-            print(f"HTMLscraper: [ERROR] can't makedirs({self.img_dir + node.url.split('://', 2)[1]}), ", e)
+            print(f"Spider: [ERROR] can't makedirs({self.img_dir + node.url.split('://', 2)[1]}), ", e)
             return
         try:
             imgs = node.html.find_all("img")
@@ -151,9 +151,9 @@ class HTMLscraper:
                 except:
                     continue
             if self.verbose:
-                print("HTMLscraper: " + node.url + " images download done")
+                print("Spider: " + node.url + " images download done")
         except Exception as e:
-            print("HTMLscraper: [ERROR] download_imgs():", e)
+            print("Spider: [ERROR] download_imgs():", e)
 
     def download_imgs_rec(self, count: int, node: Node | None = None):
         try:
@@ -170,4 +170,4 @@ class HTMLscraper:
                         break
             return count
         except Exception as e:
-            print("HTMLscraper: [ERROR] download_imgs_rec():", e)
+            print("Spider: [ERROR] download_imgs_rec():", e)

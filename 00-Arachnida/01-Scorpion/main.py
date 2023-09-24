@@ -8,9 +8,8 @@ c_stop = "\033[0m"
 if __name__ == "__main__":
     parser = ArgumentParser(description="Display image metadata")
     parser.add_argument("images", type=str, nargs="+", help="an image to analyze")
-    parser.add_argument("-m", metavar="TAG=VALUE", help="modify specific EXIF data (e.g., -m TAG=VALUE)")
-    parser.add_argument("-d", metavar="TAG", help="delete specific EXIF data (e.g., -d TAG)")
-    parser.add_argument("-g", action="store_true", help="Show the graphic interface")
+    parser.add_argument("-m", metavar="TAG=VALUE", help="modify specific EXIF data")
+    parser.add_argument("-d", metavar="TAG", help="delete specific EXIF data")
     args = parser.parse_args()
 
     allowedExt = (".jpeg", ".jpg", ".png", ".gif", ".bmp")
@@ -21,11 +20,8 @@ if __name__ == "__main__":
 
         worker = Scorpion(img_path)
         if args.d:
-            worker.delete_metadata(args.d)
+            worker.modify_metadata(args.d, None)
         if args.m:
-            try:
-                key, value = args.m.split("=", 2)
-                worker.modify_metadata(key, value)
-            except:
-                print(f"scorpion: [ERROR] invalid input for -m: {args.m}")
-        worker.show_metadata(args.g)
+            key, value = args.m.split("=", 2)
+            worker.modify_metadata(key, value)
+        worker.show_metadata()

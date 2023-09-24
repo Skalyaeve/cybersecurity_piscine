@@ -1,8 +1,6 @@
 from argparse import ArgumentParser
 
-from HTMLscraper import HTMLscraper
-from TkTreeViewer import TkTreeViewer
-
+from Spider import Spider
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="This script downloads all images from a web page")
@@ -31,7 +29,7 @@ if __name__ == "__main__":
     if not args.p[-1] == "/":
         args.p = args.p + "/"
 
-    scraper = HTMLscraper(args.url, args.p)
+    scraper = Spider(args.url, args.p)
     if args.r:
         scraper.download_imgs_rec(args.l)
     else:
