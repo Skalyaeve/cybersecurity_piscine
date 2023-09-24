@@ -13,7 +13,7 @@ from tkinter import Tk as tkinter_Tk
 from tkinter import Toplevel as tkinter_Toplevel
 from tkinter.ttk import Treeview as ttk_Treeview
 
-# from Scorpion import Scorpion
+from Scorpion import Scorpion
 
 c_green = "\033[92m"
 c_red = "\033[91m"
@@ -238,8 +238,7 @@ class Spider:
             if len(values):
                 selected_path = values[0]
                 if not os_path_isdir(selected_path) and self.__is_image_file(selected_path):
-                    # Scorpion(selected_path).show_metadata(True, self.gui["window"])
-                    print(selected_path)
+                    Scorpion(selected_path).show_metadata(True, self.gui["window"])
 
     def __is_image_file(self, img_path: str):
         ext = os_path_splitext(img_path)[1].lower()
