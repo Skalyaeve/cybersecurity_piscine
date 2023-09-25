@@ -46,7 +46,14 @@ docker		:
 		docker build -t $(DOCKER_NAME) .
 		docker run --name $(DOCKER_NAME) -d $(DOCKER_NAME)
 		@echo
-		@echo "You can now 'docker exec -it $(DOCKER_NAME) /bin/bash'."
+		@echo "You can now 'docker exec -it $(DOCKER_NAME) bash'."
 		@echo
 
-.PHONY		: all clean fclean re docker
+docker-stop	:
+		docker kill $(DOCKER_NAME)
+		docker system prune -f
+
+docker-clean	:
+		docker system prune -fa
+
+.PHONY		: all clean fclean re docker docker-stop docker-clean

@@ -1,10 +1,15 @@
 FROM            debian:latest
 
-RUN             apt-get update -y   \
-                && mkdir /infection
+RUN             apt-get update -y                       \
+                && apt-get install -y libssl-dev        \
+                && mkdir -p /root/infection/sub1        \
+                && mkdir -p /root/infection/sub2        \
+                && touch /root/infection/test1.txt      \
+                && touch /root/infection/sub1/test2.txt \
+                && touch /root/infection/sub2/test3.txt
 
-COPY            ./Stockholm     /.
-COPY            ./entrypoint.sh /.
+COPY            ./Stockholm     /usr/bin/Stockholm
 
-RUN             chmod +x /entrypoint.sh
-ENTRYPOINT      ["/entrypoint.sh"]
+WORKDIR         /root
+
+CMD             ["sleep", "infinity"]

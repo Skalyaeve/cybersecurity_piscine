@@ -3,8 +3,8 @@
 IronDome::IronDome()
     : _workin_dirs(std::vector<std::string>(1, DEFAULT_ROOT)),
       _logfile(DEFAULT_LOGFILE),
+      _backup_interval(DEFAULT_BACKUP_INTERVAL),
       _read_treshold(DEFAULT_READ_TRESHOLD),
-      _backup_interval(0),
       _crypto_use_treshold(DEFAULT_CRYPTO_USE_TRESHOLD),
       _entropy_treshold(DEFAULT_ENTROPY_TRESHOLD)
 {
@@ -32,7 +32,7 @@ IronDome::IronDome(const std::vector<std::string> *workin_dirs,
                    const float *entropy_treshold)
     : _workin_dirs(workin_dirs ? *workin_dirs : std::vector<std::string>(1, DEFAULT_ROOT)),
       _logfile(logfile ? *logfile : DEFAULT_LOGFILE),
-      _backup_interval(backup_interval ? *backup_interval : 0),
+      _backup_interval(backup_interval ? *backup_interval : DEFAULT_BACKUP_INTERVAL),
       _read_treshold(read_treshold ? *read_treshold : DEFAULT_READ_TRESHOLD),
       _crypto_use_treshold(crypto_use_treshold ? *crypto_use_treshold : DEFAULT_CRYPTO_USE_TRESHOLD),
       _entropy_treshold(entropy_treshold ? *entropy_treshold : DEFAULT_ENTROPY_TRESHOLD)
@@ -157,7 +157,7 @@ int IronDome::launch()
         if (chdir("/"))
                 exit(errno);
         this->_my_time = 0;
-        this->_logs = "----------------| H E L L O   W O R L D |----------------\n";
+        this->_logs = "----------------| I R O N   D O M E |----------------\n";
 
         struct rlimit mem_limit;
         mem_limit.rlim_cur = mem_limit.rlim_max = MEM_LIMIT * 1024 * 1024;
@@ -189,6 +189,7 @@ int IronDome::launch()
 
         for (std::string dir : this->_workin_dirs)
                 this->_add_watches(dir);
+        this->_watch_crypto_cmds();
         this->_work();
         return -1;
 }
@@ -206,7 +207,15 @@ void IronDome::_save_logs()
         this->_logs.clear();
 }
 
-std::vector<std::string> IronDome::_split_str(const std::string &src, char delimiter) const
+bool IronDome::_is_file(const std::string &path) const
+{
+        struct stat path_stat;
+        if (stat(path.c_str(), &path_stat) == -1)
+                return false;
+        return S_ISREG(path_stat.st_mode);
+}
+
+std::vector<std::string> IronDome::_split_str(const std::string &src, const char &delimiter) const
 {
         std::vector<std::string> tokens;
         std::string token;
@@ -226,27 +235,74 @@ std::vector<std::string> IronDome::_split_str(const std::string &src, char delim
 
 void IronDome::_add_watches(const std::string &path)
 {
-        const int wd = inotify_add_watch(this->_inotify_fd, path.c_str(), IN_ACCESS | IN_MODIFY);
-        if (wd < 0)
+        struct stat s;
+        if (stat(path.c_str(), &s) == 0)
         {
-                this->_logs += "[ ERROR ] inotify_add_watch(" + path + ") failed: " + std::string(strerror(errno)) + '\n';
-                return;
-        }
-        this->_watch_map[wd] = path;
-        this->_logs += "[ INFO ] Watching: " + path + '\n';
-        this->_save_logs();
+                if ((s.st_mode & S_IFMT) == S_IFDIR)
+                {
+                        const int wd = inotify_add_watch(this->_inotify_fd, path.c_str(), IN_ACCESS | IN_MODIFY | IN_CREATE);
+                        if (wd < 0)
+                        {
+                                this->_logs += "[ ERROR ] inotify_add_watch(" + path + ") failed: " + std::string(strerror(errno)) + '\n';
+                                return;
+                        }
+                        this->_watch_map[wd] = path;
+                        this->_logs += "[ INFO ] Watching directory: " + path + '\n';
 
-        DIR *dir = opendir(path.c_str());
-        if (!dir)
+                        DIR *dir = opendir(path.c_str());
+                        if (!dir)
+                        {
+                                this->_logs += "[ ERROR ] opendir(" + path + ") failed: " + std::string(strerror(errno)) + '\n';
+                                return;
+                        }
+
+                        struct dirent *entry;
+                        while ((entry = readdir(dir)))
+                        {
+                                if (entry->d_type == DT_DIR && strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
+                                        this->_add_watches(path + '/' + entry->d_name);
+                                else if (entry->d_type == DT_REG)
+                                        this->_add_watches(path + '/' + entry->d_name);
+                        }
+                        closedir(dir);
+                }
+                else if ((s.st_mode & S_IFMT) == S_IFREG)
+                {
+                        const int wd = inotify_add_watch(this->_inotify_fd, path.c_str(), IN_ACCESS | IN_MODIFY);
+                        if (wd < 0)
+                        {
+                                this->_logs += "[ ERROR ] inotify_add_watch(" + path + ") failed: " + std::string(strerror(errno)) + '\n';
+                                return;
+                        }
+                        this->_watch_map[wd] = path;
+                        this->_logs += "[ INFO ] Watching file: " + path + '\n';
+                }
+        }
+        else
+                this->_logs += "[ ERROR ] stat(" + path + ") failed: " + std::string(strerror(errno)) + '\n';
+}
+
+void IronDome::_watch_crypto_cmds()
+{
+        std::string path(DATA_DIR);
+        path += '/';
+        path += CRYPTO_CMD_FILE;
+        std::ifstream file(path);
+        if (!file.is_open())
         {
-                this->_logs += "[ ERROR ] opendir(" + path + ") failed: " + std::string(strerror(errno)) + '\n';
+                this->_logs += "[ ERROR ] Can't open " + path + ": " + std::string(strerror(errno)) + '\n';
                 return;
         }
-        struct dirent *entry;
-        while ((entry = readdir(dir)))
-                if (entry->d_type == DT_DIR && strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
-                        this->_add_watches(path + '/' + entry->d_name);
-        closedir(dir);
+
+        struct stat s;
+        std::string line;
+        while (std::getline(file, line))
+        {
+                path = "/usr/bin/" + line;
+                if (!stat(path.c_str(), &s))
+                        this->_add_watches(path);
+        }
+        file.close();
 }
 
 void IronDome::_work()
@@ -256,8 +312,8 @@ void IronDome::_work()
         char buffer[buf_len];
 
         std::unordered_map<std::string, unsigned short> read_counter;
-        size_t length;
-        size_t i;
+        ssize_t length;
+        ssize_t i;
         struct inotify_event *event;
 
         this->_logs += "[ INFO ] Ready.\n";
@@ -271,8 +327,10 @@ void IronDome::_work()
                         {
                                 this->_my_time = 0;
                                 this->_do_backup();
+                                this->_logs += "[ INFO ] Backup done.\n";
                         }
                 }
+
                 read_counter.clear();
                 while ((length = read(this->_inotify_fd, buffer, buf_len)) > 0)
                 {
@@ -289,10 +347,7 @@ void IronDome::_work()
                 if (length < 0 && (errno != EAGAIN && errno != EWOULDBLOCK))
                         this->_logs += "[ ERROR ] read() failed: " + std::string(strerror(errno)) + '\n';
 
-                for (auto &it : read_counter)
-                        if (!system(std::string("grep " + it.first + " < " + DATA_DIR + '/' + CRYPTO_CMD_FILE).c_str()) &&
-                            it.second > this->_crypto_use_treshold)
-                                this->_logs += "[ WARNING ] CRYPTO: " + it.first + '\n';
+                this->_check_crypto_use(read_counter);
                 this->_save_logs();
                 sleep(SLEEPTIME);
         }
@@ -304,34 +359,55 @@ void IronDome::_work()
 
 void IronDome::_inotify_check(struct inotify_event *event, std::unordered_map<std::string, unsigned short> &read_counter)
 {
+        const std::string path = this->_watch_map[event->wd];
+
         if (event->mask & IN_ACCESS)
         {
-                if (read_counter[event->name] > this->_read_treshold)
+                if (read_counter[path] > this->_read_treshold)
                         return;
-                read_counter[event->name]++;
-                if (read_counter[event->name] > this->_read_treshold)
-                        this->_logs += "[ WARNING ] READ: " + std::string(event->name) + '\n';
+                read_counter[path]++;
+                if (read_counter[path] > this->_read_treshold)
+                        this->_logs += "[ WARNING ] READ: " + std::string(path) + '\n';
         }
         else if (event->mask & IN_MODIFY)
+                this->_launch_entropy_update(path);
+        else if (event->mask & IN_CREATE)
         {
-                const std::string filePath = this->_watch_map[event->wd] + '/' + event->name;
-                if (!this->_is_file(filePath))
-                        return;
-                std::ifstream file(filePath, std::ios::binary);
-                if (!file.is_open())
+                const std::string new_item = this->_watch_map[event->wd] + '/' + std::string(event->name);
+                this->_launch_entropy_update(new_item);
+
+                for (const auto &it : this->_watch_map)
+                        if (it.second == new_item)
+                                return;
+                const int wd = inotify_add_watch(this->_inotify_fd, new_item.c_str(), IN_ACCESS | IN_MODIFY);
+                if (wd >= 0)
                 {
-                        this->_logs += "[ ERROR ] Can't open " + filePath + ": " + std::string(strerror(errno)) + '\n';
-                        return;
+                        this->_watch_map[wd] = new_item;
+                        this->_logs += "[ INFO ] Watching new file: " + new_item + '\n';
                 }
-                std::vector<unsigned char> bytes(
-                    (std::istreambuf_iterator<char>(file)),
-                    (std::istreambuf_iterator<char>()));
-                file.close();
-                this->_update_entropy(this->_calc_entropy(bytes), filePath);
+                else
+                        this->_logs += "[ ERROR ] inotify_add_watch(" + new_item + ") failed: " + std::string(strerror(errno)) + '\n';
         }
 }
 
-float IronDome::_calc_entropy(std::vector<unsigned char> &bytes)
+void IronDome::_launch_entropy_update(const std::string &path)
+{
+        if (!this->_is_file(path))
+                return;
+        std::ifstream file(path, std::ios::binary);
+        if (!file.is_open())
+        {
+                this->_logs += "[ ERROR ] Can't open " + path + ": " + std::string(strerror(errno)) + '\n';
+                return;
+        }
+        std::vector<unsigned char> bytes(
+            (std::istreambuf_iterator<char>(file)),
+            (std::istreambuf_iterator<char>()));
+        file.close();
+        this->_update_entropy(this->_calc_entropy(bytes), path);
+}
+
+float IronDome::_calc_entropy(std::vector<unsigned char> &bytes) const
 {
         std::unordered_map<unsigned char, unsigned int> frequency;
         for (unsigned char byte : bytes)
@@ -348,56 +424,121 @@ float IronDome::_calc_entropy(std::vector<unsigned char> &bytes)
 
 void IronDome::_update_entropy(const float &entropy, const std::string &path)
 {
+        this->_save_logs();
         std::string entropy_file(DATA_DIR);
         entropy_file += '/';
         entropy_file += ENTROPY_FILE;
-        std::string entropy_temp_file(DATA_DIR);
-        entropy_temp_file += '/';
-        entropy_temp_file += ENTROPY_TEMP_FILE;
+        const std::string rec = this->_check_entropy_file(entropy_file, path, entropy);
+        if (rec.empty())
+                return;
 
-        if (system(std::string("grep " + path + " < " + entropy_file + " > " + entropy_temp_file).c_str()))
+        std::vector<std::string> content = this->_split_str(rec, ':');
+        if (content.size() != 2 || content[0] != path)
         {
-                this->_logs += "[ INFO ] Adding entropy record for " + path + '\n';
-                std::ofstream outfile(entropy_file, std::ios_base::app);
-                if (!outfile.is_open())
-                {
-                        this->_logs += "[ ERROR ] Can't open " + entropy_file + ": " + std::string(strerror(errno)) + '\n';
-                        return;
-                }
-                outfile << path << ':' << std::to_string(entropy) << std::endl;
-                outfile.close();
+                this->_logs += "[ ERROR ] " + entropy_file + " corrupted.\n";
+                return;
+        }
+        else if (entropy - std::stof(content[1]) > this->_entropy_treshold)
+                this->_logs += "[ WARNING ] ENTROPY: " + path + '\n';
+
+        this->_update_entropy_file(entropy_file, path, entropy, content[1]);
+}
+
+void IronDome::_update_entropy_file(const std::string &entropy_file, const std::string &path, const float &entropy, const std::string &old_entropy)
+{
+        std::string temp_file(DATA_DIR);
+        temp_file += '/';
+        temp_file += ENTROPY_FILE;
+        temp_file += ".tmp";
+
+        std::ifstream infile(entropy_file);
+        std::ofstream outfile(temp_file);
+        std::string line;
+
+        if (!infile.is_open() || !outfile.is_open())
+        {
+                this->_logs += "[ ERROR ] Can't open files\n";
                 return;
         }
 
-        std::ifstream file = std::ifstream(entropy_temp_file);
+        while (std::getline(infile, line))
+        {
+                std::size_t found = line.find(path + ":" + old_entropy);
+                if (found != std::string::npos)
+                        line.replace(found, (path + ":" + old_entropy).length(), path + ":" + std::to_string(entropy));
+                outfile << line << "\n";
+        }
+        infile.close();
+        outfile.close();
+
+        if (rename(temp_file.c_str(), entropy_file.c_str()) != 0)
+                this->_logs += "[ ERROR ] Could not rename temp file\n";
+}
+
+std::string IronDome::_check_entropy_file(const std::string &entropy_file, const std::string &path, const float &entropy)
+{
+        std::ifstream infile(entropy_file);
+
+        if (!infile.is_open())
+        {
+                this->_logs += "[ ERROR ] Can't open " + entropy_file + ": " + std::string(strerror(errno)) + '\n';
+                return std::string();
+        }
+        std::string line;
+        std::string ret;
+        while (std::getline(infile, line))
+        {
+                std::vector<std::string> content = this->_split_str(line, ':');
+                if (content.size() != 2 || content[0] != path)
+                        continue;
+                ret = line;
+                break;
+        }
+        infile.close();
+        if (!ret.empty())
+                return ret;
+
+        this->_logs += "[ INFO ] Adding entropy record for " + path + '\n';
+        std::ofstream outfile(entropy_file, std::ios_base::app);
+        if (!outfile.is_open())
+                this->_logs += "[ ERROR ] Can't open " + entropy_file + ": " + std::string(strerror(errno)) + '\n';
+        else
+        {
+                outfile << path << ":" << std::to_string(entropy) << std::endl;
+                outfile.close();
+        }
+        return std::string();
+}
+
+void IronDome::_check_crypto_use(const std::unordered_map<std::string, unsigned short> &read_counter)
+{
+        std::string path(DATA_DIR);
+        path += '/';
+        path += CRYPTO_CMD_FILE;
+        std::ifstream file(path);
         if (!file.is_open())
         {
-                this->_logs += "[ ERROR ] Can't open " + entropy_temp_file + ": " + std::string(strerror(errno)) + '\n';
+                this->_logs += "[ ERROR ] Can't open " + std::string(DATA_DIR) + '/' + CRYPTO_CMD_FILE + ": " + std::string(strerror(errno)) + '\n';
                 return;
         }
         std::string line;
-        std::getline(file, line);
-        file.close();
-        if (!line.length())
+        std::string keyword;
+        for (auto &it : read_counter)
         {
-                this->_logs += "[ ERROR ] " + entropy_temp_file + " corrupted.\n";
-                return;
+                if (it.first.empty())
+                        continue;
+                keyword = this->_split_str(it.first, '/').back();
+                bool found = false;
+
+                file.clear();
+                file.seekg(0, std::ios::beg);
+                while (std::getline(file, line))
+                        if (line == keyword && (found = true))
+                                break;
+                if (found && it.second > this->_crypto_use_treshold)
+                        this->_logs += "[ WARNING ] CRYPTO: " + it.first + '\n';
         }
-        std::vector<std::string> content = this->_split_str(line, ':');
-
-        if (content.size() != 2 || content[0] != path)
-                this->_logs += "[ ERROR ] " + entropy_temp_file + " corrupted.\n";
-        else if (std::stof(content[1]) < entropy)
-                this->_logs += "[ WARNING ] ENTROPY: " + path + '\n';
-        system(std::string("tr \"" + path + ":" + content[1] + "\" \"" + path + ":" + std::to_string(entropy) + "\"").c_str());
-}
-
-bool IronDome::_is_file(const std::string &path) const
-{
-        struct stat path_stat;
-        if (stat(path.c_str(), &path_stat) == -1)
-                return false;
-        return S_ISREG(path_stat.st_mode);
+        file.close();
 }
 
 void IronDome::_do_backup()

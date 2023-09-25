@@ -136,9 +136,9 @@ void Stockholm::_crypt(const std::string &workdir, const bool encrypt, const boo
                         try
                         {
                                 if (encrypt && extension != "ft")
-                                        this->_ssl_encrypt(file, path.c_str());
+                                        this->_ssl_encrypt(file, path.c_str(), verbose);
                                 else if (!encrypt && extension == "ft")
-                                        this->_ssl_decrypt(file, path.c_str());
+                                        this->_ssl_decrypt(file, path.c_str(), verbose);
                         }
                         catch (const std::exception &e)
                         {
@@ -151,7 +151,7 @@ void Stockholm::_crypt(const std::string &workdir, const bool encrypt, const boo
         closedir(dir);
 }
 
-void Stockholm::_ssl_encrypt(std::ifstream &file, const std::string &path) const
+void Stockholm::_ssl_encrypt(std::ifstream &file, const std::string &path, const bool verbose) const
 {
         std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         file.close();
@@ -194,10 +194,11 @@ void Stockholm::_ssl_encrypt(std::ifstream &file, const std::string &path) const
         std::remove(path.c_str());
 
         EVP_CIPHER_CTX_free(ctx);
-        std::cout << path << " encrypted." << std::endl;
+        if (verbose)
+                std::cout << path << " encrypted." << std::endl;
 }
 
-void Stockholm::_ssl_decrypt(std::ifstream &file, const std::string &path) const
+void Stockholm::_ssl_decrypt(std::ifstream &file, const std::string &path, const bool verbose) const
 {
         std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         file.close();
@@ -240,7 +241,8 @@ void Stockholm::_ssl_decrypt(std::ifstream &file, const std::string &path) const
         std::remove(path.c_str());
 
         EVP_CIPHER_CTX_free(ctx);
-        std::cout << path << " decrypted." << std::endl;
+        if (verbose)
+                std::cout << path << " decrypted." << std::endl;
 }
 
 const std::array<std::string, EXT_COUNT> Stockholm::_target_ext = {

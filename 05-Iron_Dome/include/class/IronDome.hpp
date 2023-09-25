@@ -4,22 +4,23 @@
 #define VERSION 1
 #define MEM_LIMIT 100   // MB
 #define BUFFERSIZE 1024 // BUFFERSIZE * (event_size + 16) bytes
-#define SLEEPTIME 30    // seconds
-#define DATA_DIR "/mnt/d/Code/42/Security/Cybersecurity Piscine/05-Iron_Dome/data"
+#define SLEEPTIME 5     // seconds
+#define DATA_DIR "/var/run/IronDome"
 #define CRYPTO_CMD_FILE "crypto_list.txt"
 #define ENTROPY_FILE "entropy.txt"
-#define ENTROPY_TEMP_FILE "entropy.tmp"
+#define DEFAULT_BACKUP_INTERVAL 2
 
-#define DEFAULT_ROOT "/mnt/d/Code/42/Security/Cybersecurity Piscine/05-Iron_Dome"
-#define DEFAULT_LOGFILE "/mnt/d/Code/42/Security/Cybersecurity Piscine/05-Iron_Dome/data/log/IronDome.log"
-#define DEFAULT_READ_TRESHOLD 100
-#define DEFAULT_CRYPTO_USE_TRESHOLD 10
+#define DEFAULT_ROOT "."
+#define DEFAULT_LOGFILE "/var/log/IronDome.log"
+#define DEFAULT_READ_TRESHOLD 0
+#define DEFAULT_CRYPTO_USE_TRESHOLD 0
 #define DEFAULT_ENTROPY_TRESHOLD 0.9
 
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <unordered_map>
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <unistd.h>
@@ -68,10 +69,10 @@ protected:
         std::vector<std::string> _workin_dirs;
         std::string _logfile;
         std::string _backup_dir;
+        size_t _backup_interval;
         unsigned short _read_treshold;
         unsigned short _crypto_use_treshold;
         float _entropy_treshold;
-        size_t _backup_interval;
 
         std::string _logs;
         std::unordered_map<int, std::string> _watch_map;
@@ -79,13 +80,18 @@ protected:
         size_t _my_time;
 
         void _save_logs();
+        bool _is_file(const std::string &path) const;
+        std::vector<std::string> _split_str(const std::string &src, const char &delimiter) const;
         void _add_watches(const std::string &path);
+        void _watch_crypto_cmds();
         void _work();
         void _inotify_check(struct inotify_event *event, std::unordered_map<std::string, unsigned short> &read_counter);
+        void _launch_entropy_update(const std::string &path);
+        float _calc_entropy(std::vector<unsigned char> &bytes) const;
         void _update_entropy(const float &entropy, const std::string &path);
-        float _calc_entropy(std::vector<unsigned char> &bytes);
-        std::vector<std::string> _split_str(const std::string &src, char delimiter) const;
-        bool _is_file(const std::string &path) const;
+        std::string _check_entropy_file(const std::string &entropy_file, const std::string &path, const float &entropy);
+        void _update_entropy_file(const std::string &entropy_file, const std::string &path, const float &entropy, const std::string &old_entropy);
+        void _check_crypto_use(const std::unordered_map<std::string, unsigned short> &read_counter);
         void _do_backup();
         void _fill_that_repo(const std::string &dir, const std::string &backup_path);
 };

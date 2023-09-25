@@ -1,8 +1,8 @@
 NAME = ft_onion
 PORT_LINK_1 = 80:80
-PORT_LINK_2 = 5252:5252
+PORT_LINK_2 = 4242:4242
 
-all:	build run
+all:		build run
 
 build:
 		docker build -t $(NAME) .
@@ -26,13 +26,13 @@ delete-ctn:
 		docker container rm $(NAME)
 
 delete-img:
-		docker container rm $(NAME)
+		docker rmi $(NAME)
 
 clean:
 		docker system prune -f
 
 fclean:
-		docker system prune -f
+		docker system prune -fa
 
-.PHONY:	all build run enter stop start restart	\
+.PHONY:		all build run enter stop start restart	\
 		delete-ctn delete-img clean fclean

@@ -10,9 +10,10 @@ void print_usage()
         std::cout << "  -help, -h\t\t\tDisplay this information." << std::endl;
 }
 
-int exit_success()
+int exit_success(const bool &verbose)
 {
-        std::cout << "---------------------------------------------------------" << std::endl;
+        if (verbose)
+                std::cout << "---------------------------------------------------------" << std::endl;
         return 0;
 }
 
@@ -21,10 +22,10 @@ int main(int ac, char **av)
         bool encrypt = true;
         bool verbose = true;
         const char *env_home = std::getenv("HOME");
-        const std::string root = env_home ? std::string(env_home) : ".";
+        std::string root = env_home ? std::string(env_home) : ".";
+        root += "/infection";
         Stockholm worker(&root, NULL, NULL);
 
-        std::cout << "------------------| S T O C K H O L M |------------------" << std::endl;
         for (short i = 1; i < ac; i++)
         {
                 const std::string arg = av[i];
@@ -41,14 +42,16 @@ int main(int ac, char **av)
                         else
                         {
                                 std::cout << "[ERROR] Unknown option: " << arg << std::endl;
-                                std::cout << "Try ./Stockholm -help" << std::endl;
+                                std::cout << "Try Stockholm -help" << std::endl;
                         }
-                        return exit_success();
+                        return 0;
                 }
         }
+        if (verbose)
+                std::cout << "------------------| S T O C K H O L M |------------------" << std::endl;
         if (encrypt)
                 worker.encrypt(verbose);
         else
                 worker.decrypt(verbose);
-        return exit_success();
+        return exit_success(verbose);
 }

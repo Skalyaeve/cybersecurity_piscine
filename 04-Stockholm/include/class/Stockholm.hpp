@@ -47,7 +47,7 @@ protected:
         std::string _set_key();
         std::string _set_iv();
         void _crypt(const std::string &workdir, const bool encrypt, const bool verbose) const;
-        void _ssl_encrypt(std::ifstream &file, const std::string &path) const;
-        void _ssl_decrypt(std::ifstream &file, const std::string &path) const;
+        void _ssl_encrypt(std::ifstream &file, const std::string &path, const bool verbose) const;
+        void _ssl_decrypt(std::ifstream &file, const std::string &path, const bool verbose) const;
 };
 #endif
