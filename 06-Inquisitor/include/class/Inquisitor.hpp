@@ -2,7 +2,8 @@
 #define INQUISITOR
 
 #define BUFFER_SIZE 1024
-#define DEFAULT_ARP_FRAME_IF "eth0"
+#define DEFAULT_ARP_IF "eth0"
+#define DEFAULT_ARP_HARDW_TYPE 1
 
 #include <iostream>
 #include <errno.h>
@@ -31,13 +32,16 @@ struct arp_header
 class Inquisitor
 {
 public:
-        Inquisitor(const uint8_t *_target_mac, const uint8_t *_target_ipv4);
+        Inquisitor(const uint8_t *target_mac, const uint8_t *target_ipv4);
         Inquisitor(const Inquisitor &other);
         virtual ~Inquisitor();
 
         Inquisitor &operator=(const Inquisitor &other);
 
-        bool send_arp_frame(const std::string &interface = DEFAULT_ARP_FRAME_IF);
+        bool send_arp_frame(
+            const unsigned short &opcode,
+            const std::string &interface = DEFAULT_ARP_IF,
+            const unsigned short &hardware_type = DEFAULT_ARP_HARDW_TYPE);
 
         const int &get_sock_fd() const;
         const struct ifreq &get_if_idx() const;
@@ -61,6 +65,7 @@ public:
 
 protected:
         int _sock_fd;
+        uint8_t _self_ipv4[4];
         struct ifreq _if_idx;
         struct ifreq _if_mac;
         struct sockaddr_ll _sock_addr;
@@ -75,13 +80,14 @@ protected:
         Inquisitor();
 
         void _init();
-        bool _init_arp_frame(const std::string &interface);
+        bool _init_arp_frame(const unsigned short &opcode, const std::string &interface, const unsigned short &hardware_type);
 
         bool _init_socket(const int &domain, const int &type, const int &protocol);
+        bool _init_self_ipv4(const std::string &interface);
         bool _init_ifreq(struct ifreq &if_struct, const std::string &interface, const unsigned long &ioctl_request);
         bool _init_sock_addr_ll(const unsigned short &protocol);
         bool _init_eth_header(const uint16_t &frame_type);
-        bool _init_arp_header();
+        bool _init_arp_header(const uint16_t &hardware_type, const uint16_t &opcode);
 
         bool _send_frame() const;
 };
