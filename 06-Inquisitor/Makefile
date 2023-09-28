@@ -13,12 +13,14 @@ OBJ_DIR		= obj
 OBJ_SUBDIR	= $(shell find $(SRC_DIR) -type d | grep '/' | sed 's/$(SRC_DIR)/$(OBJ_DIR)/g')
 OBJ_FILES	= $(patsubst $(SRC_DIR)/%.$(SRC_EXT), $(OBJ_DIR)/%.o, $(SRC_FILES))
 
+LIB		= -lpcap
+
 all		: $(NAME)
 
 $(NAME)		: $(OBJ_DIR) $(OBJ_SUBDIR) $(OBJ_FILES)
-		$(CC) $(OBJ_FILES) -o $@
+		$(CC) $(OBJ_FILES) -o $@ $(LIB)
 		@echo
-		@echo "You can now './$(NAME)'."
+		@echo "You can now 'make docker'."
 		@echo
 
 $(OBJ_DIR)	:
@@ -39,4 +41,19 @@ fclean		: clean
 
 re		: fclean all
 
-.PHONY		: all clean fclean re
+docker		:
+		docker-compose build
+		docker-compose up -d
+
+docker-stop	:
+		docker-compose down
+
+docker-clean	:
+		docker system prune -f
+
+docker-fclean	:
+		docker system prune -fa
+
+docker-re	: docker-fclean docker
+
+.PHONY		: all clean fclean re docker docker-stop docker-clean docker-fclean docker-re

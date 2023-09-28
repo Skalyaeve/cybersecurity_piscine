@@ -1,8 +1,9 @@
 #ifndef HEADER
 #define HEADER
 
-#include <iostream>
-
+#include <vector>
+#include <sstream>
+#include <signal.h>
 #include "class/Inquisitor.hpp"
 
 #endif
