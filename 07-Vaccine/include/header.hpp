@@ -1,7 +1,7 @@
 #ifndef HEADER
 #define HEADER
 
-#include <fstream>
 #include "class/Vaccine.hpp"
+#include <fstream>
 
 #endif

@@ -14,11 +14,12 @@ OBJ_SUBDIR	= $(shell find $(SRC_DIR) -type d | grep '/' | sed 's/$(SRC_DIR)/$(OB
 OBJ_FILES	= $(patsubst $(SRC_DIR)/%.$(SRC_EXT), $(OBJ_DIR)/%.o, $(SRC_FILES))
 
 LIB		= -lcurl
+INC		= -I/usr/include/libxml2
 
 all		: $(NAME)
 
 $(NAME)		: $(OBJ_DIR) $(OBJ_SUBDIR) $(OBJ_FILES)
-		$(CC) $(OBJ_FILES) -o $@ $(LIB)
+		$(CC) $(OBJ_FILES) -o $@ $(LIB) $(INC)
 		@echo
 		@echo "You can now './$(NAME)'."
 		@echo
