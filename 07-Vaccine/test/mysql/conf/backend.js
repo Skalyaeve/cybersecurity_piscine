@@ -6,7 +6,8 @@ const db = mysql.createConnection({
         host: 'localhost',
         user: 'root',
         password: '123',
-        database: 'test'
+        database: 'test',
+        multipleStatements: true
 })
 db.connect(err => {
         if (err) throw err
@@ -25,7 +26,7 @@ app.post('/login', (req, res) => {
                         res.json({ success: false, errorMessage: err.message })
                         return
                 }
-                if (result) res.json({ success: result.length > 0, infos: result })
+                if (result) res.json({ success: result.length > 0, result: result })
         })
 })
 app.get('/login', (req, res) => {
@@ -37,7 +38,7 @@ app.get('/login', (req, res) => {
                         res.json({ success: false, errorMessage: err.message })
                         return
                 }
-                if (result) res.json({ success: result.length > 0, infos: result })
+                if (result) res.json({ success: result.length > 0, result: result })
         })
 })
 app.listen(8282, () => { console.log('MySQL backend listen on port 8282.') })

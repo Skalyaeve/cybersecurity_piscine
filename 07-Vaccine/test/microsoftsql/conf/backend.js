@@ -21,7 +21,7 @@ app.post('/login', async (req, res) => {
         try {
                 const request = new sql.Request()
                 const result = await request.query("SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'")
-                res.json({ success: result.recordset.length > 0, infos: result.recordset })
+                res.json({ success: result.recordset.length > 0, result: result.recordset })
         }
         catch (err) { res.status(500).json({ success: false, message: err.message }) }
 })
@@ -30,7 +30,7 @@ app.get('/login', async (req, res) => {
         try {
                 const request = new sql.Request()
                 const result = await request.query("SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'")
-                res.json({ success: result.recordset.length > 0, infos: result.recordset })
+                res.json({ success: result.recordset.length > 0, result: result.recordset })
         }
         catch (err) { res.status(500).json({ success: false, message: err.message }) }
 })

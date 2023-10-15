@@ -4,8 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const username = document.getElementById('username').value
                 const password = document.getElementById('password').value
-                console.log("1 " + { username, password })
-                console.log("2 " + JSON.stringify({ username, password }))
                 fetch('/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
