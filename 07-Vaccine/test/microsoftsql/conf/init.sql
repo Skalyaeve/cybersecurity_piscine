@@ -21,7 +21,7 @@ GO
 INSERT INTO users (username, password)
 VALUES ('admin', '<!v3rY_sTr0nG_aDmN1N_pAsSwOrD![ 4 ]>');
 GO
-INSERT INTO superusers (username, password)
+INSERT INTO superusers (username, password, superkey)
 VALUES ('superadmin', '<!!!v3rY_sTr0nG_aDmN1N_pAsSwOrD!!![ 4 ]>', '123');
 GO
 

@@ -4,6 +4,7 @@ chown mysql:mysql /var/run/mysqld
 
 mysqld --initialize --user=mysql --datadir=/var/lib/mysql
 mysqld --user=mysql &
+sleep 1
 
 while ! mysqladmin ping -h localhost --silent > /dev/null 2>&1; do
         sleep 1
@@ -12,6 +13,7 @@ done
 mysql <<EOF
 DELETE FROM mysql.user WHERE User='';
 ALTER USER 'root'@'localhost' IDENTIFIED WITH 'mysql_native_password' BY '123';
+FLUSH PRIVILEGES;
 CREATE DATABASE IF NOT EXISTS test;
 USE test;
 CREATE TABLE IF NOT EXISTS users (

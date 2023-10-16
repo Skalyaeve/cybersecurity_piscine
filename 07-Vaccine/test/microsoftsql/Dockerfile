@@ -4,8 +4,11 @@ ENV    ACCEPT_EULA=Y
 ENV    SA_PASSWORD=<MyStr0ngP@ssword!>
 
 USER    root
-RUN     apt-get update && apt-get install -y \
-        curl nodejs npm
+RUN     apt-get update &&       \
+        apt-get install -y      \
+        curl                    \
+        nodejs                  \
+        npm
 
 COPY    conf/backend.js /backend.js
 COPY    conf/package.json /package.json
@@ -17,5 +20,6 @@ RUN     chmod +x /entrypoint.sh
 
 EXPOSE  8585
 
+USER   mssql
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["node", "/backend.js"]

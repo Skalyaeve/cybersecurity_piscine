@@ -13,7 +13,7 @@ bool parse_args(
         {
                 temp = av[i];
                 if (temp == "-o" && ++i)
-                        archive_file = av[i];
+                        archive_file = std::string(av[i]) + ".json";
                 else if (temp == "-X" && ++i)
                 {
                         temp = av[i];
@@ -99,11 +99,12 @@ int main(int ac, char** av)
         const std::string url = av[ac - 1];
         std::string request_type = "GET";
         std::vector< std::string > headers;
-        std::string archive_file = "archive.vaccine";
+        std::string archive_file = "archive.json";
         if (!parse_args(ac, av, db_type, request_type, headers, archive_file))
                 return 1;
 
-        std::ofstream file(archive_file, std::ios_base::app);
+        // std::ofstream file(archive_file, std::ios_base::app);
+        std::ofstream file(archive_file);
         if (!file.is_open())
         {
                 std::cerr << "[ ERROR ] Could not open file: " << archive_file << std::endl;
@@ -111,36 +112,24 @@ int main(int ac, char** av)
         }
         file.close();
 
-        Vaccine worker(db_type, url, request_type, headers, archive_file);
+        Vaccine worker(url, request_type, headers, archive_file);
         if (worker.fetch_data())
         {
                 std::cout << "=============== V A C C I N E ===============" << std::endl
-                          << "Archive file: " << worker.get_archive_file() << std::endl
+                          << "Database type: " << worker.get_str_db_type() << std::endl
                           << "URL: " << worker.get_url() << std::endl
-                          << "Request type: " << worker.get_request_type() << std::endl
-                          << "Extra headers: " << (worker.get_headers().empty() ? "none" : "") << std::endl;
-                for (const auto& header : worker.get_headers())
-                        std::cout << "\t" << header << std::endl;
-
-                std::cout << std::endl
-                          << "Processing stacked queries..." << std::endl;
-                worker.stacked_queries();
-                std::cout << "[ DONE ]" << std::endl;
-
-                std::cout << std::endl
-                          << "Processing union based..." << std::endl;
-                worker.union_based();
-                std::cout << "[ DONE ]" << std::endl;
-
-                std::cout << std::endl
-                          << "Processing error based..." << std::endl;
-                worker.error_based();
-                std::cout << "[ DONE ]" << std::endl;
-
-                std::cout << std::endl
-                          << "Processing blind based..." << std::endl;
-                worker.blind_based();
-                std::cout << "[ DONE ]" << std::endl;
+                          << "Request type: " << worker.get_request_type() << std::endl;
+                if (!worker.get_headers().empty())
+                {
+                        std::cout << "Extra headers: " << std::endl;
+                        for (const auto& header : worker.get_headers())
+                                std::cout << "\t" << header << std::endl;
+                }
+                std::cout << "Archive file: " << worker.get_archive_file() << std::endl;
+                worker.stacked_queries(db_type);
+                worker.union_based(db_type);
+                worker.error_based(db_type);
+                worker.blind_based(db_type);
                 std::cout << "=============================================" << std::endl;
         }
         return 0;

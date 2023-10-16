@@ -4,7 +4,6 @@ import sqlite3
 
 app = Flask(__name__)
 
-
 @app.route("/login", methods=["POST", "GET"])
 def login():
     if request.method == "POST":
