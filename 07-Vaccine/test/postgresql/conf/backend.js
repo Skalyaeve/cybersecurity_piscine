@@ -25,7 +25,8 @@ app.post('/login', (req, res) => {
                         res.json({ success: false, errorMessage: err.message })
                         return
                 }
-                if (result) res.json({ success: result.rows.length > 0, result: result.rows })
+                if (result && result.rows)
+                        res.json({ success: result.rows.length > 0, result: result.rows })
         })
 })
 app.get('/login', (req, res) => {

@@ -11,7 +11,7 @@ services:
       - 4343:4343
       - 4444:4444
       - 4545:4545
-    restart: on-failure
+    restart: always
 
   mysql:
     image: mysql
@@ -19,6 +19,7 @@ services:
     build: mysql/
     networks:
       - vaccine
+    restart: always
 
   postgresql:
     image: postgresql
@@ -26,6 +27,7 @@ services:
     build: postgresql/
     networks:
       - vaccine
+    restart: always
 
   sqlite:
     image: sqlite
@@ -33,6 +35,7 @@ services:
     build: sqlite/
     networks:
       - vaccine
+    restart: always
 
   microsoftsql:
     image: microsoftsql
@@ -40,6 +43,7 @@ services:
     build: microsoftsql/
     networks:
       - vaccine
+    restart: always
 
 networks:
 
