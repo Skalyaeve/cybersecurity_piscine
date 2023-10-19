@@ -1,6 +1,6 @@
 #ifndef HEADER
 #define HEADER
 
-#include "class/VaccineSQLi.hpp"
+#include "class/vaccine/sqli/VaccineSQLi.hpp"
 
 #endif

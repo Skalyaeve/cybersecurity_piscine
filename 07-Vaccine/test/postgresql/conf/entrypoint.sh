@@ -15,14 +15,25 @@ CREATE TABLE IF NOT EXISTS users (
     login VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL
 );
+INSERT INTO users (login, password) VALUES ('user', 'password2');
+INSERT INTO users (login, password) VALUES ('admin', '<!v3rY_sTr0nG_aDmN1N_pAsSwOrD![ 2 ]>');
+
 CREATE TABLE IF NOT EXISTS superusers (
     id SERIAL PRIMARY KEY,
     login VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     superkey VARCHAR(255) NOT NULL
 );
-INSERT INTO users (login, password) VALUES ('user', 'password2');
-INSERT INTO users (login, password) VALUES ('admin', '<!v3rY_sTr0nG_aDmN1N_pAsSwOrD![ 2 ]>');
 INSERT INTO superusers (login, password, superkey) VALUES ('superadmin', '<!!!v3rY_sTr0nG_aDmN1N_pAsSwOrD!!![ 1 ]>', '123');
 EOF
+
+su - postgres -c "psql -c \"CREATE DATABASE ab\""
+su - postgres -c "psql -d ab" << EOF
+CREATE TABLE IF NOT EXISTS cd (
+    ef SERIAL PRIMARY KEY,
+    gh VARCHAR(255) NOT NULL
+);
+INSERT INTO cd (gh) VALUES ('ij');
+EOF
+
 exec $@

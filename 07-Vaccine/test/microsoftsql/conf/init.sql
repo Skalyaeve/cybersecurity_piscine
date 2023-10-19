@@ -24,5 +24,15 @@ GO
 INSERT INTO superusers (username, password, superkey)
 VALUES ('superadmin', '<!!!v3rY_sTr0nG_aDmN1N_pAsSwOrD!!![ 4 ]>', '123');
 GO
-
-
+CREATE DATABASE ab;
+GO
+USE ab;
+GO
+CREATE TABLE cd (
+    ef INT PRIMARY KEY IDENTITY(1,1),
+    gh NVARCHAR(255)
+);
+GO
+INSERT INTO cd (gh)
+VALUES ('ij');
+GO

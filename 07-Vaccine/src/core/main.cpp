@@ -100,7 +100,8 @@ int main(int ac, char** av)
                         for (const auto& header : worker.get_headers())
                                 std::cout << "\t" << header << std::endl;
                 }
-                std::cout << "Archive file: " << worker.get_archive_file() << std::endl;
+                std::cout << "Archive file: " << worker.get_archive_file() << std::endl
+                          << std::endl;
                 worker.stacked_queries();
                 worker.union_based();
                 worker.error_based();

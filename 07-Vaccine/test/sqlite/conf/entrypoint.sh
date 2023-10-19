@@ -5,14 +5,21 @@ CREATE TABLE IF NOT EXISTS users (
     login TEXT NOT NULL,
     password TEXT NOT NULL
 );
+INSERT INTO users (login, password) VALUES ('user1', 'password3');
+INSERT INTO users (login, password) VALUES ('admin', '<!v3rY_sTr0nG_aDmN1N_pAsSwOrD![ 3 ]>');
+
 CREATE TABLE IF NOT EXISTS superusers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     login TEXT NOT NULL,
     password TEXT NOT NULL,
-    superkey VARCHAR(255) NOT NULL
+    superkey TEXT NOT NULL
 );
-INSERT INTO users (login, password) VALUES ('user1', 'password3');
-INSERT INTO users (login, password) VALUES ('admin', '<!v3rY_sTr0nG_aDmN1N_pAsSwOrD![ 3 ]>');
 INSERT INTO superusers (login, password, superkey) VALUES ('superadmin', '<!!!v3rY_sTr0nG_aDmN1N_pAsSwOrD!!![ 1 ]>', '123');
+
+CREATE TABLE IF NOT EXISTS cd (
+    ef INTEGER PRIMARY KEY AUTOINCREMENT,
+    gh TEXT NOT NULL
+);
+INSERT INTO cd (gh) VALUES ('ij');
 EOF
 exec $@
