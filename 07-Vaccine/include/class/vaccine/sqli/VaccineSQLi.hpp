@@ -2,6 +2,8 @@
 #define VACCINE_SQLI
 
 #define TIMEOUT 32
+#define STOP 0
+#define CONTINUE 1
 
 #include <functional>
 #include <json/json.h>
@@ -24,7 +26,6 @@ using FtPayload = std::function< std::string(
 using FtParser = std::function< str_vector(
     const std::string&,
     sptr_vector&,
-    const uint8&,
     const uint8&) >;
 
 class VaccineSQLi : public Vaccine
@@ -42,6 +43,7 @@ public:
         VaccineSQLi& operator=(const VaccineSQLi& other);
 
         bool fetch_data();
+        void process(const uint8& method_type);
         void stacked_queries();
         void union_based();
         void error_based();
@@ -123,6 +125,23 @@ private:
 
         // ====================s============ MANAGE
         bool _manage(
+            const uint8& value_type,
+            const str_vector& response,
+            sptr_vector& config,
+            const int* index,
+            const std::string* name);
+
+        bool _manage_stacked_queries(
+            const uint8& value_type,
+            const str_vector& response,
+            const int* index,
+            const std::string* name);
+        bool _manage_union_based(
+            const uint8& value_type,
+            const str_vector& response,
+            const int* index,
+            const std::string* name);
+        bool _manage_error_based(
             const uint8& value_type,
             const str_vector& response,
             sptr_vector& config,

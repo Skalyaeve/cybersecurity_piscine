@@ -1,16 +1,6 @@
 #ifndef SQLI_POSTGRESQL
 #define SQLI_POSTGRESQL
 
-#define UNION 1
-#define ERROR 2
-#define BLIND 3
-
-#define UNION_BASED_OFFSET 0
-#define UNION_BASED_DATABASE 1
-#define UNION_BASED_TABLE 2
-#define UNION_BASED_COLUMN 3
-
-#include "../mysql/mysql.hpp"
 #include "blind_based.hpp"
 #include "error_based.hpp"
 
@@ -49,14 +39,56 @@ struct sqli_postgresql
         static str_vector parser(
             const std::string& response,
             sptr_vector& config,
-            const uint8& method_type,
-            const uint8& value_type)
+            const uint8& method_type)
         {
-                return sqli_mysql::parser(
-                    response,
-                    config,
-                    method_type,
-                    value_type);
-        }
+                if (method_type == BLIND)
+                        return mysql_blind_based::parser(response, config);
+                str_vector values;
+                Json::Value entries;
+                std::string errors;
+                Json::CharReaderBuilder builder;
+                std::unique_ptr< Json::CharReader > reader(builder.newCharReader());
+                if (!reader->parse(
+                        response.c_str(),
+                        response.c_str() + response.size(),
+                        &entries, &errors))
+                {
+                        std::cerr << "[ ERROR ] Could not parse server response."
+                                  << std::endl;
+                        return str_vector();
+                }
+                if (method_type == ERROR)
+                        return postgresql_error_based::parser(entries, config);
+
+                for (const auto& member : entries.getMemberNames())
+                {
+                        if (!entries[member].isArray())
+                                continue;
+                        if (entries[member].empty())
+                                return str_vector();
+
+                        std::string entry_str;
+                        for (const auto& entry : entries[member])
+                        {
+                                for (const auto& key : entry.getMemberNames())
+                                {
+                                        if (entry[key].isNull())
+                                                continue;
+                                        try
+                                        {
+                                                entry_str = entry[key].asString();
+                                        }
+                                        catch (const std::exception& _)
+                                        {
+                                                entry_str = "NOT_CONVERTIBLE";
+                                        }
+                                        values.push_back(entry_str);
+                                        break;
+                                }
+                        }
+                        break;
+                }
+                return values;
+        };
 };
 #endif

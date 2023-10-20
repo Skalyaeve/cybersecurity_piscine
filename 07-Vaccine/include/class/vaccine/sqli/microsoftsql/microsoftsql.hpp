@@ -1,11 +1,7 @@
 #ifndef SQLI_MICROSOFTSQL
 #define SQLI_MICROSOFTSQL
 
-#define UNION 1
-#define ERROR 2
-#define BLIND 3
-
-#include "../mysql/mysql.hpp"
+#include "blind_based.hpp"
 #include "error_based.hpp"
 #include "union_based.hpp"
 
@@ -30,7 +26,7 @@ struct sqli_microsoftsql
                 case ERROR:
                         return microsoftsql_error_based::payload(config, value_type);
                 case BLIND:
-                        return mysql_blind_based::payload(config, value_type);
+                        return microsoftsql_blind_based::payload(config, value_type);
                 default:
                         return std::string();
                 }
@@ -39,14 +35,12 @@ struct sqli_microsoftsql
         static str_vector parser(
             const std::string& response,
             sptr_vector& config,
-            const uint8& method_type,
-            const uint8& value_type)
+            const uint8& method_type)
         {
                 return sqli_mysql::parser(
                     response,
                     config,
-                    method_type,
-                    value_type);
+                    method_type);
         }
 };
 #endif

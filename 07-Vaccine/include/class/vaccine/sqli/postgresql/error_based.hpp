@@ -1,13 +1,8 @@
 #ifndef POSTGRESQL_ERROR_BASED
 #define POSTGRESQL_ERROR_BASED
 
-#define ERROR_BASED_INDEX 0
-#define ERROR_BASED_MARKED 1
-#define ERROR_BASED_DATABASE 2
-#define ERROR_BASED_TABLE 3
-#define ERROR_BASED_COLUMN 4
-
 #include "../../Vaccine.hpp"
+#include "../mysql/mysql.hpp"
 
 struct postgresql_error_based
 {
@@ -50,6 +45,37 @@ struct postgresql_error_based
                 default:
                         return std::string();
                 }
+        };
+
+        static str_vector parser(const Json::Value& entries, sptr_vector& config)
+        {
+                std::string response;
+                str_vector values;
+                for (const auto& member : entries.getMemberNames())
+                {
+                        try
+                        {
+                                response = entries[member].asString();
+                        }
+                        catch (const std::exception& _)
+                        {
+                                response = "NOT_CONVERTIBLE";
+                        }
+                        const size_t start = response.find("\"~");
+                        const size_t end = response.find_first_of("\"", start + 1);
+                        if (start == std::string::npos || end == std::string::npos)
+                                continue;
+
+                        const std::string value = response.substr(
+                            start + 2, end - start - 2);
+                        if (value.empty())
+                                continue;
+                        values.push_back(value);
+                        break;
+                }
+                if (values.empty())
+                        *config[ERROR_BASED_INDEX] = "0";
+                return values;
         };
 };
 #endif

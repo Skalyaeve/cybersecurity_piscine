@@ -43,10 +43,8 @@ struct sqli_mysql
         static str_vector parser(
             const std::string& response,
             sptr_vector& config,
-            const uint8& method_type,
-            const uint8& value_type)
+            const uint8& method_type)
         {
-                (void)value_type;
                 if (method_type == BLIND)
                         return mysql_blind_based::parser(response, config);
                 str_vector values;

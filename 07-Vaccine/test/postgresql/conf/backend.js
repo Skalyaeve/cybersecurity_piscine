@@ -7,6 +7,7 @@ const db = new Client({
         user: 'postgres',
         password: '123',
         database: 'test'
+        //database: 'ab'
 })
 db.connect(err => {
         if (err) throw err
@@ -19,6 +20,7 @@ app.use(bodyParser.json())
 app.post('/login', (req, res) => {
         const { username, password } = req.body
         const query = "SELECT * FROM users WHERE login = '" + username + "' AND password = '" + password + "'"
+        //const query = "SELECT * FROM cd WHERE gh = '" + username + "' OR gh = '" + password + "'"
         db.query(query, (err, result) => {
                 if (err) {
                         console.error(err)
@@ -32,6 +34,7 @@ app.post('/login', (req, res) => {
 app.get('/login', (req, res) => {
         const { username, password } = req.query
         const query = "SELECT * FROM users WHERE login = '" + username + "' AND password = '" + password + "'"
+        //const query = "SELECT * FROM cd WHERE gh = '" + username + "' OR gh = '" + password + "'"
         db.query(query, (err, result) => {
                 if (err) {
                         console.error(err)

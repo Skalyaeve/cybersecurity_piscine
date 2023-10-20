@@ -22,7 +22,7 @@ void print_usage()
 bool parse_args(
     int& ac,
     char** av,
-    short& db_type,
+    uint8& db_type,
     std::string& request_type,
     str_vector& headers,
     std::string& archive_file)
@@ -70,7 +70,7 @@ int main(int ac, char** av)
 {
         if (ac < 2)
                 print_usage();
-        short db_type = ALL;
+        uint8 db_type = ALL;
         const std::string url = av[ac - 1];
         std::string request_type = "GET";
         str_vector headers;
@@ -78,8 +78,7 @@ int main(int ac, char** av)
         if (!parse_args(ac, av, db_type, request_type, headers, archive_file))
                 return 1;
 
-        // std::ofstream file(archive_file, std::ios_base::app);
-        std::ofstream file(archive_file);
+        std::ofstream file(archive_file, std::ios_base::app);
         if (!file.is_open())
         {
                 std::cerr << "[ ERROR ] Could not open file: " << archive_file << std::endl;
@@ -102,10 +101,10 @@ int main(int ac, char** av)
                 }
                 std::cout << "Archive file: " << worker.get_archive_file() << std::endl
                           << std::endl;
-                worker.stacked_queries();
-                worker.union_based();
-                worker.error_based();
-                worker.blind_based();
+                worker.process(STACKED);
+                worker.process(UNION);
+                worker.process(ERROR);
+                worker.process(BLIND);
                 std::cout << "=============================================" << std::endl;
         }
         return 0;

@@ -20,6 +20,7 @@
 #include <vector>
 
 typedef unsigned char uint8;
+typedef unsigned char uchar;
 typedef std::vector< std::string > str_vector;
 typedef std::vector< std::string* > sptr_vector;
 typedef std::vector< void* > ptr_vector;

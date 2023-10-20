@@ -1,7 +1,7 @@
 #ifndef MYSQL_UNION_BASED
 #define MYSQL_UNION_BASED
 
-#define UNION_BASED_OFFSET_LEN 6
+#define OFFSET_LEN 6
 
 #define UNION_BASED_OFFSET 0
 #define UNION_BASED_DATABASE 1
@@ -25,7 +25,7 @@ struct mysql_union_based
                 case TABLES:
                         if (config[UNION_BASED_OFFSET + 1] != NULL)
                         {
-                                for (uint8 i = 0; i < UNION_BASED_OFFSET_LEN; ++i)
+                                for (uint8 i = 0; i < OFFSET_LEN; ++i)
                                         config[UNION_BASED_OFFSET]->pop_back();
                                 config[UNION_BASED_OFFSET + 1] = NULL;
                         }
