@@ -1,5 +1,0 @@
-Port 4242
-UsePAM yes
-PermitRootLogin no
-PrintMotd no
-Subsystem sftp internal-sftp
