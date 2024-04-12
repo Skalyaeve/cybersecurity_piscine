@@ -8,4 +8,4 @@
 | [reverse_me](https://github.com/Skalyaeve/reverse_me) | Introduction au reverse ELF | Bug Bounty |
 | [ft_onion](https://github.com/Skalyaeve/ft_onion) | Introduction à Tor | Web |
 | [ft_otp](https://github.com/Skalyaeve/ft_otp) | OTP generator | Programmation / Cryptography |
-| [arachnida](https://github.com/Skalyaeve/arachnida) | Scraper d'images | Programmation / Web |
+| [arachnida](https://github.com/Skalyaeve/arachnida) | Web images scraper | Programmation / Web |
