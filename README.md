@@ -7,6 +7,6 @@
 | [stockholm](https://github.com/Skalyaeve/stockholm) | A ransomware behavior | Dev & Malware |
 | [reverse_me](https://github.com/Skalyaeve/reverse_me) | Introduction au reverse ELF | Bug Bounty |
 | [ft_onion](https://github.com/Skalyaeve/ft_onion) | Introduction à Tor | Web |
-| [ft_otp](https://github.com/Skalyaeve/ft_otp) | OTP generator | Programmation / Cryptography |
+| [ft_otp](https://github.com/Skalyaeve/ft_otp) | OTP generator | Dev & Cryptography |
 | [arachnida](https://github.com/Skalyaeve/arachnida) | Web images scraper | Dev & Web |
 
