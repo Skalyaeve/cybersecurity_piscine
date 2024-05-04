@@ -9,4 +9,3 @@
 | [ft_onion](https://github.com/Skalyaeve/ft_onion) | Introduction à Tor | Web |
 | [ft_otp](https://github.com/Skalyaeve/ft_otp) | Générateur de mot de passe à usage unique | Dev & Cryptography |
 | [arachnida](https://github.com/Skalyaeve/arachnida) | Scraper d'images web | Dev & Web |
-
